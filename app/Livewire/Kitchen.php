@@ -38,7 +38,6 @@ class Kitchen extends Component
         $this->kioskId = $kiosk->id;
         Access::authorize($business->id, 'kitchen.use', $kiosk->id);
     }
-
     public function advance(int $id, ?string $expectedStatus = null): void
     {
         Access::authorize($this->businessId, 'orders.update', $this->kioskId);
