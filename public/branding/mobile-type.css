@@ -1,0 +1,76 @@
+@media (max-width: 760px) {
+    :is(.app-shell, .customer-app, .tracking, .login-page, .business-home, .gather-dialog) {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    :is(.app-shell, .customer-app, .tracking, .login-page, .business-home, .gather-dialog)
+    :is(input:not([type="checkbox"], [type="radio"]), select, textarea, .btn, .text-link) {
+        font-size: 1rem;
+    }
+
+    .app-shell .topbar p,
+    .app-shell .section-line p,
+    .app-shell :is(.stat-label, .stat-note, .overview-caption, .payment-note, .field-caption),
+    .staff-orders small,
+    :is(.customer-app, .tracking) :is(.customer-product p, .takeout-location, .takeout-badge, .table-tag, .payment-note, .payment-intro, .payment-explainer, .tracking-live),
+    .takeout-timeline > div {
+        font-size: .875rem;
+        line-height: 1.45;
+    }
+
+    :is(.app-shell, .customer-app, .tracking, .gather-dialog) .eyebrow,
+    .terminal-main .product-category {
+        font-size: .75rem;
+        line-height: 1.4;
+    }
+
+    #staff-nav .nav-item { font-size: 1rem; }
+    .staff-tabs :is(a, button) { font-size: .875rem; }
+    .app-shell .topbar-actions .branch-select select,
+    .terminal-main .staff-order-mode select { font-size: 1rem; }
+    .app-shell .section-line { flex-wrap: wrap; }
+    .app-shell .section-line h2 { font-size: 1.125rem; }
+    .app-shell .section-line .btn { white-space: normal; }
+    .app-shell .stat > strong {
+        font-size: clamp(1.25rem, 5vw, 1.625rem);
+        overflow-wrap: anywhere;
+    }
+
+    .terminal-main :is(.product-info h3, .product-bottom strong),
+    .customer-app :is(.customer-product h3, .customer-product-bottom > strong),
+    :is(.customer-app, .app-shell, .gather-dialog) :is(.cart-item h3, .cart-item > strong) {
+        font-size: 1rem;
+        line-height: 1.35;
+    }
+
+    .terminal-main .product-info h3,
+    .customer-app .customer-product h3,
+    .cart-item h3 { overflow-wrap: anywhere; }
+    :is(.terminal-main, .customer-app) .chip { font-size: .875rem; }
+    .terminal-main .stock-tag { font-size: .75rem; }
+    .staff-orders td, .app-shell table :is(th, td) { font-size: .875rem; }
+    :is(.app-shell, .customer-app, .tracking) .badge { font-size: .8125rem; }
+
+    .customer-app .customer-product-bottom { flex-wrap: wrap; }
+    .customer-app .customer-product-bottom .add-small { min-height: 40px; }
+    .customer-app .basket-bar > .btn { min-height: 48px; gap: 8px; }
+    .customer-app .basket-bar strong { font-size: 1rem; }
+    .customer-app .basket-bar strong:last-child { white-space: nowrap; }
+    .takeout-timeline > div { min-width: 0; text-align: center; overflow-wrap: anywhere; }
+
+    :is(.app-shell, .customer-app, .tracking, .gather-dialog) .total-row { font-size: 1rem; }
+    :is(.app-shell, .customer-app, .tracking, .gather-dialog) .grand-total { font-size: 1.125rem; }
+    #brand-install :is(p, .btn), #install-reopen { font-size: 1rem; }
+    .scan-destination a { font-size: 1rem; }
+
+    .login-page :is(.login-card p, label), .business-home .business-card p {
+        font-size: 1rem;
+    }
+
+    @media (max-width: 380px) {
+        .customer-app .customer-product > img { width: 72px; height: 82px; }
+        .customer-app .customer-product { gap: 10px; }
+        .terminal-main .stock-tag { max-width: calc(100% - 12px); }
+    }
+}

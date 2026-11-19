@@ -1,0 +1,7 @@
+[data-cashier-install] { display: none !important; }
+.cashier-install-available [data-cashier-install] { display: inline-flex !important; }
+.cashier-install [hidden] { display: none !important; }
+.cashier-install img { border-radius: 12px; }
+.cashier-install ol { padding-inline-start: 22px; margin-block: 12px; }
+.cashier-install li + li { margin-top: 8px; }
+.cashier-install .btn { margin-top: 10px; min-height: 44px; }

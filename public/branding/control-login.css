@@ -1,0 +1,110 @@
+.fi-simple-layout:has(.gather-control-login),
+.fi-simple-main-ctn:has(.gather-control-login) {
+    background: #fbf5eb;
+}
+.fi-simple-main:has(.gather-control-login) {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+}
+.gather-control-login {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1.12fr 1fr;
+    align-items: center;
+    gap: clamp(40px, 7vw, 118px);
+    min-height: 100svh;
+    width: min(100%, 1700px);
+    margin: auto;
+    padding: clamp(24px, 3.4vw, 60px);
+    color: #24221f;
+}
+.gather-login-photo {
+    display: block;
+    width: 100%;
+    height: clamp(540px, 88svh, 1040px);
+    border-radius: clamp(18px, 2vw, 32px);
+    overflow: hidden;
+    background: #4f5843;
+}
+.gather-login-photo img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+}
+.gather-login-form {
+    width: min(100%, 590px);
+    min-width: 0;
+}
+.gather-control-login .fi-simple-header {
+    align-items: flex-start;
+    text-align: left;
+    margin-bottom: 10px;
+}
+.gather-control-login .fi-simple-header .fi-logo {
+    margin: 0;
+}
+.gather-control-login .control-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 20px;
+    font-size: clamp(20px, 2.2vw, 32px);
+    font-weight: 750;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.gather-control-login .control-brand img {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    object-fit: contain;
+    flex: none;
+}
+.gather-control-login .fi-simple-header-heading {
+    font-size: clamp(36px, 4vw, 62px);
+    line-height: 1.05;
+    letter-spacing: -.035em;
+}
+.gather-control-login .fi-simple-header-subheading {
+    color: #514b43;
+    font-size: 16px;
+}
+.gather-control-login .fi-input-wrp {
+    min-height: 48px;
+    border-radius: 12px;
+}
+.gather-control-login .fi-input-wrp:focus-within {
+    outline: 2px solid #bf4d0d;
+    outline-offset: 1px;
+}
+.gather-control-login .fi-input { font-size: 16px; }
+.gather-control-login .fi-btn[type=submit] {
+    min-height: 52px;
+    width: 100%;
+    border-radius: 12px;
+    background: #ab3e04;
+    color: white;
+    font-size: 16px;
+    font-weight: 650;
+}
+.gather-control-login .fi-btn[type=submit]:hover { background: #8f3302; }
+.dark .fi-simple-layout:has(.gather-control-login),
+.dark .fi-simple-main-ctn:has(.gather-control-login) { background: #211d18; }
+.dark .gather-control-login { color: #fff8ed; }
+.dark .gather-control-login .fi-simple-header-subheading { color: #ded2c4; }
+@media (max-width: 799px) {
+    .gather-control-login {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+        padding: 32px 24px;
+    }
+    .gather-login-photo { display: none; }
+}

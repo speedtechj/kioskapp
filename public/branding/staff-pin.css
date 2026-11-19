@@ -1,0 +1,28 @@
+.pin-page { min-height: 100dvh; display: grid; place-items: center; padding: 18px; background: #f4ede1; color: #22261e; }
+.pin-card { display: grid; width: min(850px, 100%); grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); overflow: hidden; background: #fffaf1; border-radius: 24px; box-shadow: 0 12px 40px #25271b24; }
+.pin-brand, .pin-content { padding: clamp(18px, 4vw, 44px); }
+.pin-brand { display: grid; align-content: center; gap: 8px; background: #282e1d; color: #fffaf1; }
+.pin-brand > strong { font-size: clamp(2rem, 5vw, 4rem); line-height: 1; }
+.pin-brand > strong span { color: #ff7f3c; }
+.pin-content, .pin-content form, .pin-entry, .pin-approval form { display: grid; gap: 12px; }
+.pin-content h1 { font-size: clamp(1.55rem, 4vw, 2.5rem); }
+.pin-content label, .pin-approval label { display: grid; gap: 5px; font-weight: 650; }
+.pin-content :is(input, select), .pin-approval :is(input, select) { width: 100%; min-height: 44px; padding: 8px 12px; font: inherit; background: #fffdf7; color: #242824; border: 1px solid #a9a397; border-radius: 10px; }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.pin-keypad button { min-height: 44px; border: 1px solid #d6cfc1; border-radius: 10px; background: #efe8da; color: #242824; font: inherit; font-size: 1.1rem; font-weight: 700; }
+.pin-content .btn, .pin-approval .btn { min-height: 44px; }
+.pin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pin-qr svg { display: block; max-width: min(100%, 240px); height: auto; background: white; }
+.pin-approval .total-row { display: flex; justify-content: space-between; gap: 12px; }
+.pin-approval .pin-preview { background: #f2e8db; color: #242824; padding: 12px; border-radius: 12px; }
+.pos-pin-links { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+@media (max-width: 640px) {
+    .pin-page { align-items: start; padding: 10px; }
+    .pin-card { grid-template-columns: minmax(0, 1fr); }
+    .pin-brand { padding-block: 15px; }
+}
+
+.pin-approval-keypad { display: none; }
+@media (max-width: 760px) {
+    .pin-approval-keypad { display: grid; }
+}

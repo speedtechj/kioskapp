@@ -1,0 +1,30 @@
+@media (width > 760px) {
+    .staff-tabs, .staff-menu-backdrop, #staff-nav .staff-sheet-header,
+    #staff-nav .staff-sheet-links, #staff-nav .staff-menu-actions, #staff-nav .help-card {
+        display: none;
+    }
+
+    #staff-nav {
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+    }
+
+    #staff-nav > * { flex-shrink: 0; }
+
+    #staff-nav .nav-item {
+        min-height: 40px;
+        gap: 10px;
+    }
+
+    #staff-nav .staff-settings-caption { margin-top: 16px; }
+
+    #staff-nav .sidebar-top .brand small {
+        letter-spacing: .15em;
+        white-space: nowrap;
+    }
+}
+
+#staff-nav .staff-business-switch { color: inherit; text-decoration: none; }
+#staff-nav .staff-business-switch > img { flex: none; object-fit: cover; border-radius: 4px; }
+#staff-nav .staff-business-switch > span { overflow-wrap: anywhere; }
+#staff-nav .staff-business-switch > .icon { margin-left: auto; flex: none; }

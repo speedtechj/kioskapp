@@ -1,0 +1,66 @@
+.workspace-login-photo, .workspace-mobile-brand { display: none; }
+.gather-workspace-login .login-card label { display: block; margin-bottom: 7px; }
+.gather-workspace-login .login-card input { width: 100%; min-height: 48px; font-size: 16px; }
+.workspace-password { position: relative; }
+.workspace-password input { padding-right: 54px; }
+#workspace-password-toggle {
+    position: absolute;
+    inset: 0 3px 0 auto;
+    width: 48px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #625a50;
+    cursor: pointer;
+}
+#workspace-password-toggle svg { width: 21px; height: 21px; display: inline-block; }
+#workspace-password-toggle:focus-visible { outline: 2px solid #ab3e04; }
+.gather-workspace-login .login-card > input { margin-bottom: 12px; }
+
+@media (max-width: 799px) {
+    .gather-control-login, .gather-workspace-login {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        justify-items: center;
+        gap: 16px;
+        min-height: 100svh;
+        padding: max(16px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    }
+    .gather-workspace-login { background: #fbf5eb; color: #24221f; }
+    .gather-control-login .gather-login-photo,
+    .gather-workspace-login .workspace-login-photo {
+        display: block;
+        width: min(100%, 440px);
+        height: clamp(104px, 22svh, 190px);
+        border-radius: 16px;
+        overflow: hidden;
+        background: #4f5843;
+    }
+    .workspace-login-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .gather-control-login .gather-login-form,
+    .gather-workspace-login .login-form { width: min(100%, 440px); }
+    .gather-control-login .fi-simple-header { gap: 6px; margin-bottom: 0; }
+    .gather-control-login .control-brand { margin-bottom: 8px; }
+    .gather-control-login .control-brand img,
+    .workspace-mobile-brand img { width: 42px; height: 42px; border-radius: 11px; }
+    .gather-control-login .fi-simple-header-heading,
+    .gather-workspace-login .login-card h2 { font-size: clamp(30px, 8vw, 38px); line-height: 1.1; }
+    .gather-workspace-login .login-story,
+    .gather-workspace-login .workspace-desktop-icon { display: none; }
+    .gather-workspace-login .login-form { display: grid; gap: 16px; min-height: 0; padding: 0; }
+    .gather-workspace-login .login-card {
+        width: 100%; max-width: none; padding: 0;
+        border: 0; background: transparent; box-shadow: none;
+    }
+    .workspace-mobile-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 22px; }
+    .gather-workspace-login .login-card input {
+        display: block; border: 1px solid #c4bcb0; border-radius: 12px;
+        background: #fffaf2; color: #24221f; padding: 12px;
+    }
+    .gather-workspace-login .workspace-password input { padding-right: 54px; }
+    .gather-workspace-login .login-card input:focus-visible { outline: 2px solid #ab3e04; outline-offset: 1px; }
+    .gather-workspace-login .login-card .btn.primary {
+        background: #ab3e04; color: white; min-height: 52px; border-radius: 12px;
+    }
+}

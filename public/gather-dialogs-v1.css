@@ -1,0 +1,28 @@
+:root { --gather-action:#af4019; --gather-ink:#292922; --gather-muted:#585850; }
+dialog.gather-dialog {
+  box-sizing:border-box; position:fixed; inset:0; margin:auto; width:min(440px,calc(100vw - 32px));
+  max-height:88dvh; overflow:auto; padding:28px; border:1px solid #e4ddd2; border-radius:22px;
+  color:var(--gather-ink); background:#fffefa; box-shadow:0 20px 75px #26190e3a;
+}
+dialog.gather-dialog:not([open]) { display:none; }
+.gather-dialog::backdrop { background:rgb(32 29 24 / .48); backdrop-filter:blur(2px); }
+.gather-dialog h2 { font-size:1.45rem; line-height:1.22; font-weight:750; margin:0 0 12px; }
+.gather-dialog .gd-context { padding:15px; margin:14px 0; border-radius:12px; background:#fff1e4; font-weight:700; color:#813512; }
+.gather-dialog .gd-body { margin:12px 0 20px; line-height:1.55; color:var(--gather-muted); }
+.gd-actions { display:flex; gap:10px; }
+.gd-actions button { flex:1; font:inherit; font-weight:650; border-radius:12px; padding:12px; cursor:pointer; min-height:46px; }
+.gd-back { background:#f4efe6; color:#37352e; border:1px solid #ddd5c7; }
+.gd-commit { background:var(--gather-action); color:white; border:1px solid var(--gather-action); }
+.gather-dialog :focus-visible { outline:3px solid #21668d; outline-offset:3px; }
+.gather-dialog.gd-content { width:min(620px,calc(100vw - 32px)); }
+.gather-dialog.gd-wide { width:min(950px,calc(100vw - 32px)); }
+.success-banner.gd-success { display:flex;gap:12px;align-items:center;background:#edf5e9;color:#295535;border:1px solid #cddfc5;border-left:5px solid #598653;border-radius:12px;padding:15px 18px; }
+.gd-success strong,.gd-success small { display:block; }
+.fi-modal-window { border-radius:20px; }
+@media(max-width:640px) {
+  dialog.gather-dialog,.gather-dialog.gd-content { inset:auto 0 0; margin:0; width:100%; max-width:100%; max-height:90dvh; border-radius:22px 22px 0 0; padding:14px 20px max(22px,env(safe-area-inset-bottom)); }
+  .gather-dialog::before { content:''; display:block; width:36px; height:4px; margin:0 auto 18px; background:#d5cec3; border-radius:4px; }
+  .gd-actions { flex-direction:column; }
+  .fi-modal-window-ctn:has(.fi-modal-window) { align-items:flex-end; }
+  .fi-modal-window { border-radius:20px 20px 0 0; }
+}

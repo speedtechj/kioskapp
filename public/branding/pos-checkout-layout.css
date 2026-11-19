@@ -1,0 +1,48 @@
+.terminal-layout .checkout-payment-heading { margin: 0 0 12px; font-size: 1.25rem; }
+.terminal-layout .cash-change-total { display: none; }
+.terminal-layout .cash-change-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    text-align: left;
+}
+.terminal-layout .payment-options button { min-height: 52px; font-size: .9rem; }
+.terminal-layout .staff-payment .charge { min-height: 48px; font-size: 1rem; }
+.terminal-layout .checkout-errors:empty { display: none; }
+
+@media (min-width: 761px) {
+    .terminal-layout .staff-next-payment { display: flex; justify-content: center; margin-top: 12px; min-height: 44px; }
+    .terminal-layout:not(.staff-pay-step) .staff-payment { display: none; }
+    .terminal-layout.staff-pay-step { display: block; padding-right: clamp(16px, 3vw, 36px); }
+    .terminal-layout.staff-pay-step .catalog { display: none; }
+    .terminal-layout.staff-pay-step .cart-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        grid-template-rows: auto auto 1fr auto auto;
+        column-gap: clamp(16px, 3vw, 32px);
+        position: static;
+        max-height: none;
+        min-height: 0;
+        padding: clamp(14px, 2vw, 24px);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+    }
+    .terminal-layout.staff-pay-step .cart-checkout { display: contents; }
+    .terminal-layout.staff-pay-step .staff-cart-tools { display: flex; grid-column: 1 / -1; margin-bottom: 16px; }
+    .terminal-layout.staff-pay-step .staff-cart-tools .icon-btn,
+    .terminal-layout.staff-pay-step :is(.cart-mode, .cart-items .quantity, .staff-next-payment) { display: none; }
+    .terminal-layout.staff-pay-step .cart-head { grid-area: 2 / 1; padding: 0; }
+    .terminal-layout.staff-pay-step .cart-items { grid-area: 3 / 1; padding-inline: 0; min-height: 0; }
+    .terminal-layout.staff-pay-step .checkout-totals { grid-area: 4 / 1; padding-top: 16px; }
+    .terminal-layout.staff-pay-step .checkout-errors { grid-area: 5 / 2; }
+    .terminal-layout.staff-pay-step .staff-payment {
+        grid-area: 2 / 2 / 5;
+        min-width: 0;
+        padding: clamp(12px, 2vw, 24px);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+    }
+    .terminal-layout.staff-pay-step .cart-item h3 { font-size: 1rem; overflow-wrap: anywhere; }
+}

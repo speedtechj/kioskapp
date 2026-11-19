@@ -1,0 +1,53 @@
+.phone-menu-title, .phone-menu-category { display: none; }
+.phone-menu-controls { display: contents; }
+
+#brand-install [hidden], #install-reopen[hidden] { display: none !important; }
+#brand-install .install-close { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; display: grid; place-items: center; background: transparent; border: 0; color: inherit; }
+#brand-install .install-close svg { width: 24px; height: 24px; }
+#brand-install .install-device { display: table; margin: 8px auto 12px; border-radius: 999px; background: #f0e3cb; color: #29271f; padding: 4px 12px; font-weight: 700; }
+#brand-install ol { margin: 12px auto; padding-left: 28px; text-align: left; }
+#brand-install li + li { margin-top: 8px; }
+#brand-install .install-fallback { margin: 12px 0 0; }
+
+@media (max-width: 760px) {
+    body .customer-app.customer-app :is(.takeout-welcome, .takeout-hero, .customer-welcome, .menu-hero, .desktop-menu-caption) { display: none; }
+    body .customer-app.customer-app .phone-menu-title { display: block; margin: 12px 0; font-size: 2.25rem; line-height: 1.1; font-weight: 800; }
+    body .customer-app.customer-app .phone-menu-category { display: block; margin: 14px 0 0; font-size: 1.75rem; line-height: 1.2; font-weight: 750; overflow-wrap: anywhere; }
+    body .customer-app.customer-app .phone-menu-controls { display: flex; flex-direction: column; gap: 12px; }
+    body .customer-app.customer-app .phone-menu-controls .search { order: -1; margin: 0; }
+    body .customer-app.customer-app .phone-menu-controls .categories { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; overflow: visible; }
+    body .customer-app.customer-app .phone-menu-controls .chip { min-height: 48px; font-size: 1.0625rem; font-weight: 700; white-space: normal; overflow-wrap: anywhere; }
+    body .customer-app.customer-app .phone-menu-controls .chip.selected,
+    body .customer-app.customer-app .customer-product-bottom .add-small:not(:disabled),
+    body .customer-app.customer-app .basket-bar .btn:not(:disabled),
+    #brand-install.install-sheet .btn.primary { background: #a43b0c; border-color: #a43b0c; color: white; }
+    body .customer-app.customer-app .customer-product h3 { font-size: 1.375rem; line-height: 1.2; font-weight: 750; }
+    body .customer-app.customer-app .customer-product p { font-size: 1.125rem; line-height: 1.45; color: #45483f; overflow-wrap: anywhere; }
+    body .customer-app.customer-app .customer-product-bottom strong { font-size: 1.25rem; font-weight: 750; }
+    body .customer-app.customer-app .customer-product-bottom .add-small,
+    body .customer-app.customer-app .basket-bar > .btn,
+    body .customer-app.customer-app .basket-bar > .btn strong { min-height: 48px; font-size: 1.1875rem; font-weight: 750; }
+    body .customer-app.customer-app .basket-bar > .btn strong { min-height: 0; }
+    body .customer-app.customer-app .basket-bar > .btn { gap: 8px; line-height: 1.2; }
+    body .customer-app.customer-app { padding-bottom: calc(136px + env(safe-area-inset-bottom, 0px)); }
+
+    #brand-install.install-sheet {
+        position: fixed; inset: auto 0 0; width: 100%; max-width: 520px;
+        max-height: 90dvh; margin: 0 auto; overflow: auto; border-radius: 24px 24px 0 0;
+        padding: 20px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+        background: #fff9ef; color: #20251c; text-align: center;
+    }
+    #brand-install.install-sheet h2 { font-size: clamp(1.5rem, 6vw, 1.9rem); line-height: 1.15; margin: 8px 28px; overflow-wrap: anywhere; }
+    #brand-install.install-sheet :is(li, p) { font-size: 1rem; line-height: 1.45; }
+    #brand-install.install-sheet .btn { min-height: 48px; margin-top: 6px; font-size: 1.1875rem; font-weight: 750; }
+}
+
+@media (max-width: 760px) {
+    body .customer-app.customer-app .customer-product > img {
+        width: clamp(86px, 26vw, 118px);
+        height: clamp(96px, 29vw, 132px);
+        flex: 0 0 auto;
+        object-fit: cover;
+        align-self: flex-start;
+    }
+}

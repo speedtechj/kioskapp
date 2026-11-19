@@ -1,0 +1,26 @@
+.register-shift-controls { margin-block: 0 16px; }
+.register-shift-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.register-shift-dialog .btn, .register-shift-actions .btn { min-height: 44px; }
+.register-shift-dialog form { display: grid; gap: 12px; }
+.register-shift-dialog input { min-width: 0; width: 100%; min-height: 44px; font-size: 1rem; }
+.register-cash-count { display: grid; border-block: 1px solid var(--line); max-height: min(42dvh, 360px); overflow: auto; }
+.register-denomination { display: grid; grid-template-columns: minmax(0, 1fr) minmax(55px, 22%) minmax(0, 1fr); align-items: center; gap: 8px; padding: 5px 3px; }
+.register-denomination strong { text-align: right; overflow-wrap: anywhere; }
+.register-lock { margin-block: 12px 20px; padding: 20px; }
+.register-payment-locked { margin-block: 12px; }
+.register-sale-closed { position: relative; }
+.register-inactive-catalog { opacity: .38; }
+.register-sale-closed .register-lock {
+    position: absolute;
+    z-index: 2;
+    inset: clamp(16px, 12vw, 150px) 12px auto;
+    max-width: 440px;
+    margin-inline: auto;
+    text-align: center;
+    box-shadow: 0 10px 32px #25201924;
+}
+.register-lock p { margin-block: 8px 16px; }
+@media (max-width: 760px) {
+    .register-sale-closed .register-lock { inset: 22px 0 auto; }
+    .register-lock .btn { width: 100%; }
+}

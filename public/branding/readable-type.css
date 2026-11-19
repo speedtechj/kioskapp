@@ -1,0 +1,94 @@
+:is(body.gather-type, body.fi-body) {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+.gather-type :is(.main .topbar h1, .workspace-directory > h1, .business-home > h1),
+.fi-body :is(.fi-header-heading, .fi-simple-header-heading) {
+    font-size: clamp(2rem, 3.1vw, 2.125rem);
+    line-height: 1.15;
+    font-weight: 750;
+}
+.gather-type :is(.section-line h2, .cart-head h2, .workspace-business h2, .modal h2),
+.fi-body :is(.fi-section-header-heading, .fi-modal-heading) {
+    font-size: 1.25rem;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.gather-type :is(.main, .customer-app, .tracking, .login-page, .business-home, .workspace-selector, .gather-dialog)
+:is(input:not([type=checkbox], [type=radio]), select, textarea, .btn, .text-link),
+.gather-type :is(.staff-tabs a, .staff-tabs button, #staff-nav .nav-item, .workspace-tag, .workspace-action),
+.fi-body :is(.fi-btn, .fi-sidebar-item-label, .fi-input, .fi-select-input, .control-page, .control-actions) {
+    font-size: 1rem;
+}
+.gather-type :is(.section-line .btn, .text-link, #staff-nav .nav-item, .staff-tabs a, .staff-tabs button, .workspace-action),
+.fi-body :is(.fi-btn, .fi-sidebar-item-label, .control-field label) {
+    font-weight: 650;
+}
+.gather-type :is(.section-line .btn, #staff-nav .nav-item) { white-space: normal; }
+.gather-type :is(.nav-caption, .eyebrow, .field-caption, .date-label, .checkout-totals .total-row,
+    .count-label, .stat-label, .stat-note, .overview-caption, .product-category, .stock-tag, .badge,
+    .ticket-note, .payment-note, .payment-intro, .payment-explainer, .table-tag, .takeout-badge, .takeout-location,
+    .takeout-timeline > div, .tracking-live, .cart-mode, .quantity, .bar-column, .rank, .insight, .kiosk-details,
+    .login-note, .login-foot, .customer-footer, .app-footer, .receipt-meta, .check-label, .branch-chip,
+    .help-card p, .help-card a, .profile small, .brand small),
+.fi-body :is(.control-status, .control-upload small, .fi-badge, .fi-fo-field-wrp-hint) {
+    font-size: .875rem;
+    line-height: 1.4;
+}
+.gather-type :is(.muted, .stat-note, .overview-caption, .staff-orders td small) { color: #585e51; }
+.gather-type :is(.main .topbar p, .section-line p, .ticket-item, .ticket-table, .payment-card p,
+    .customer-product p, .takeout-welcome p, .takeout-review-header p, .customer-welcome p,
+    .cart-item h3, .cart-item > strong, .product-bottom strong, .product-info h3,
+    .customer-product h3, .customer-product-bottom > strong, .basket-bar strong, .empty,
+    .error, .success-banner, .confirmed-payment, .order-details, .total-row, .chip, .login-card label,
+    .login-card p, .workspace-kiosk strong) {
+    font-size: 1rem;
+    line-height: 1.45;
+}
+.gather-type :is(.card, .product-card, .product-info, .customer-product > div, .table-scroll) { min-width: 0; }
+.gather-type :is(.product-info h3, .customer-product h3, .cart-item h3, .stat strong, .staff-orders td) {
+    overflow-wrap: anywhere;
+}
+.gather-type :is(.topbar, .section-line, .customer-product-bottom, .cart-mode) { flex-wrap: wrap; }
+.gather-type :is(.table-scroll th, .table-scroll td) { font-size: 1rem; line-height: 1.45; }
+.gather-type .table-scroll td small { font-size: .875rem; }
+.gather-type .staff-orders td strong { font-weight: 750; }
+.gather-type .staff-orders td .text-link { color: #a63b0d; }
+.gather-type .staff-orders td .badge { font-weight: 650; white-space: normal; }
+.gather-type .orders-filters { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.gather-type .orders-filters label { display: grid; gap: 5px; margin: 0; font-weight: 650; }
+.gather-type .orders-filters :is(input, button) { min-height: 44px; }
+.gather-type .orders-date-summary { margin: 12px 0; }
+
+@media (max-width: 760px) {
+    .gather-type .staff-orders tbody tr:not(:has(td[colspan])) { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+    .gather-type .staff-orders td:nth-child(1) { grid-area: 1 / 1; }
+    .gather-type .staff-orders td:nth-child(4) { grid-area: 1 / 2; text-align: right; }
+    .gather-type .staff-orders td:nth-child(2) { grid-area: 2 / 1; }
+    .gather-type .staff-orders td:nth-child(3) { grid-area: 2 / 2; text-align: right; }
+    .gather-type .staff-orders td:nth-child(5) { grid-area: 3 / 1; }
+    .gather-type .staff-orders td:nth-child(6) { grid-area: 3 / 2; text-align: right; }
+    .gather-type .staff-orders td[colspan] { grid-area: auto / 1 / auto / -1; }
+    .gather-type .staff-orders td .text-link {
+        display: flex; min-height: 44px; align-items: center; justify-content: center;
+        padding: 8px; border-radius: 9px; color: #fff; background: #a63b0d; text-align: center;
+    }
+    .gather-type .staff-orders td .text-link:hover { background: #843008; }
+    .gather-type .staff-orders td :is(a > strong, strong) { font-size: 1.125rem; }
+    .gather-type .staff-tabs :is(a, button) { font-size: .875rem; }
+    .gather-type .orders-filters label { flex: 1 1 100%; }
+    .gather-type .orders-filters input { min-width: 0; width: 100%; }
+}
+
+.gather-type :is(.login-card h2, .takeout-welcome h1, .customer-welcome h1, .takeout-review-header h1) {
+    font-size: clamp(1.75rem, 4.5vw, 2.125rem);
+    line-height: 1.15;
+    font-weight: 750;
+}
+.gather-type .grand-total { font-size: 1.125rem; }
+.gather-type .main .sidebar-bottom strong, .gather-type .sidebar .profile strong { font-size: 1rem; }
+.gather-type .subtle-chip { font-size: .875rem !important; }
+.gather-type .app-shell .stat > strong { font-size: clamp(1.25rem, 3.5vw, 1.75rem); }
+.gather-type .customer-product-bottom .add-small { min-height: 42px; }
+.fi-body .control-table :is(th, td) { font-size: 1rem; }

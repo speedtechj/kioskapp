@@ -1,0 +1,27 @@
+.kitchen-view-switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.kitchen-view-switch .btn { min-height: 48px; font-weight: 700; }
+.kitchen-table-groups, .kitchen-takeout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 16px; align-items: start; }
+.kitchen-table-group, .kitchen-order-ticket { border: 1px solid #d9cdb8; border-radius: 14px; background: #fffaf0; color: #252a1b; min-width: 0; }
+.kitchen-table-group h2 { margin: 0; padding: 12px 16px; border-radius: 13px 13px 0 0; font-size: 1.4rem; background: #363e20; color: white; overflow-wrap: anywhere; }
+.kitchen-table-tickets { display: grid; gap: 10px; padding: 10px; }
+.kitchen-order-ticket { padding: 14px; display: grid; gap: 12px; overflow-wrap: anywhere; }
+.kitchen-order-ticket header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.kitchen-order-ticket h3 { margin: 0; font-size: 1.55rem; line-height: 1.2; }
+.kitchen-order-ticket time, .kitchen-order-ticket header div > span { font-size: .95rem; }
+.kitchen-order-ticket ul { padding: 10px 0 0; margin: 0; border-top: 1px solid #d9cdb8; list-style: none; font-size: 1.125rem; }
+.kitchen-order-ticket li + li { margin-top: 4px; }
+.kitchen-ticket-status { display: flex; flex-wrap: wrap; gap: 4px; }
+.kitchen-status { display: inline-block; border-radius: 999px; font-weight: 750; padding: 4px 10px; }
+.kitchen-status.status-received, .kitchen-ticket-action.btn.primary { background: #a73e0b; color: white; }
+.kitchen-status.status-preparing, .kitchen-order-note { background: #f8e0b5; color: #4c2d0d; }
+.kitchen-status.status-ready { background: #dfedcd; color: #26431d; }
+.kitchen-ticket-action.btn.primary.kitchen-handoff { background: #315527; }
+.kitchen-ticket-action.btn { min-height: 48px; font-weight: 750; justify-content: center; width: 100%; }
+.kitchen-order-note { border-radius: 8px; padding: 8px 10px; }
+.kitchen-pickup-warning { color: #8b360e; font-weight: 750; }
+.kitchen-takeout-title { display: flex; gap: 10px; align-items: center; margin: 0 0 12px; font-size: 1.5rem; }
+
+@media (max-width: 760px) {
+    .kitchen-table-groups, .kitchen-takeout-grid { grid-template-columns: 1fr; }
+    .kitchen-view-switch .btn { flex: 1 1 auto; justify-content: center; }
+}

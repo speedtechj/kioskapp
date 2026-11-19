@@ -1,0 +1,35 @@
+.pos-adjustments { margin: 12px 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #f2f4e7; }
+.pos-adjustments summary { cursor: pointer; font-weight: 750; padding-block: 6px; }
+.pos-adjustments label { display: grid; gap: 4px; margin: 8px 0; }
+.pos-adjustment-item { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 8px 0; }
+.pos-adjustment-item .btn { min-height: 44px; }
+
+@media (min-width: 761px) {
+    .staff-pay-step .pos-adjustments { display: none; }
+
+    .terminal-layout:not(.staff-pay-step):has(.pos-adjustments[open]) {
+        display: block;
+        padding-right: clamp(16px, 3vw, 36px);
+    }
+    .terminal-layout:not(.staff-pay-step):has(.pos-adjustments[open]) .catalog { display: none; }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        grid-template-areas: "heading adjustments" "items adjustments" "totals adjustments" ". errors" ". next";
+        align-content: start;
+        column-gap: clamp(14px, 3vw, 28px);
+        position: static;
+        min-height: 0;
+        max-height: none;
+        padding: clamp(14px, 2vw, 24px);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+    }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) .cart-checkout { display: contents; }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) .cart-head { grid-area: heading; }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) .cart-items { grid-area: items; }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) .checkout-totals { grid-area: totals; }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) .checkout-errors { grid-area: errors; }
+    .terminal-layout:not(.staff-pay-step) .cart-panel:has(.pos-adjustments[open]) .staff-next-payment { grid-area: next; }
+    .pos-adjustments[open] { grid-area: adjustments; margin: 0; }
+}

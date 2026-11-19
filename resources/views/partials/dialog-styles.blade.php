@@ -1,0 +1,1 @@
+<link rel="stylesheet" href="{{ asset('gather-dialogs-v1.css') }}">

@@ -1,0 +1,67 @@
+.cashier-sign-in-page [x-cloak] { display: none !important; }
+.cashier-sign-in-page .pin-brand img { border-radius: 18px; }
+.cashier-sign-in-page .pin-branch {
+    width: fit-content;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #fff1da;
+    color: #393217;
+    font-weight: 750;
+}
+.pin-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.cashier-picker { display: grid; gap: 5px; }
+.cashier-picker-label { font-weight: 750; }
+.cashier-picker-trigger, .cashier-choice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 62px;
+    padding: 10px 14px;
+    border: 1px solid #a59c84;
+    border-radius: 14px;
+    background: #fffaf1;
+    color: #282e1d;
+    font: inherit;
+    font-size: clamp(1.05rem, 4.8vw, 1.3rem);
+    font-weight: 750;
+    text-align: left;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+.cashier-picker-trigger .icon { width: 24px; height: 24px; }
+.cashier-picker-list { display: grid; gap: 8px; }
+.cashier-choice[aria-pressed="true"] { border-color: #ad4718; background: #ffe9d2; }
+.cashier-choice-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #efe1c6; }
+.cashier-sign-in-page .pin-input-label { text-align: center; font-size: clamp(1.05rem, 4.5vw, 1.3rem); }
+.pin-indicator { position: relative; display: block; }
+.pin-circles { display: none; }
+.pin-entry-ready .pin-secret { position: absolute; inset: 0; height: 100%; opacity: 0; cursor: text; }
+.pin-entry-ready .pin-circles { display: flex; justify-content: center; gap: clamp(8px, 3vw, 16px); padding: 12px 0; }
+.pin-entry-ready .pin-circles > span { width: clamp(22px, 7vw, 34px); aspect-ratio: 1; border: 2px solid #363d20; border-radius: 50%; }
+.pin-entry-ready .pin-circles > .pin-circle-filled { background: #363d20; }
+.pin-indicator:focus-within { outline: 2px solid #9e471b; outline-offset: 3px; border-radius: 12px; }
+.cashier-sign-in-page .pin-keypad button { min-height: clamp(51px, 14vw, 68px); font-size: clamp(1.4rem, 6vw, 1.85rem); }
+.cashier-sign-in-page .cashier-open-pos { min-height: 56px; font-size: 1.2rem; }
+.cashier-mobile-add { display: none; }
+@media (max-width: 760px) {
+    .cashier-sign-in-page { padding: 0; align-items: start; background: #fffaf1; }
+    .cashier-sign-in-page .pin-card { width: 100%; min-height: 100dvh; grid-template-columns: 1fr; grid-template-rows: auto 1fr; border-radius: 0; box-shadow: none; }
+    .cashier-sign-in-page .pin-brand { justify-items: center; padding: 18px 16px 14px; background: #fffaf1; color: #282e1d; }
+    .cashier-sign-in-page .pin-brand img { width: 52px; height: 52px; }
+    .cashier-sign-in-page .pin-content { align-content: start; padding: 12px 16px max(20px, env(safe-area-inset-bottom)); }
+    .cashier-roomy-pos .terminal-layout .catalog .search input { min-height: 54px; font-size: 17px; }
+    .cashier-roomy-pos .catalog .categories .chip { min-height: 44px; font-size: .95rem; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-grid { gap: 10px; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-card .product-photo { aspect-ratio: 1.15; height: auto; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-card .product-photo img { height: 100%; object-fit: cover; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-info h3 { font-size: 1.02rem; line-height: 1.25; overflow-wrap: anywhere; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-bottom { display: grid; gap: 6px; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-bottom strong { font-size: 1rem; }
+    .cashier-roomy-pos .terminal-layout .catalog .product-bottom .add-circle { display: grid; width: 100%; min-height: 44px; place-items: center; border-radius: 10px; background: #39431d; color: #fffaf1; font-size: .95rem; }
+    .cashier-roomy-pos .cashier-desktop-add { display: none; }
+    .cashier-roomy-pos .cashier-mobile-add { display: inline; }
+    .cashier-roomy-pos .terminal-layout .staff-cart-trigger { min-height: 56px; font-size: 1.05rem; }
+    .cashier-roomy-pos .terminal-layout .catalog { padding-bottom: 84px; }
+}

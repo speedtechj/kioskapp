@@ -1,0 +1,1 @@
+<a href="{{ auth()->check()?route('home'):'#' }}" class="brand"><span>Gather<span class="brand-dot">.</span></span><small>RESTAURANT OS</small></a>

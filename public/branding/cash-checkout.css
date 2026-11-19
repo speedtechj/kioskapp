@@ -1,0 +1,13 @@
+.cash-checkout-summary { margin: 0 0 12px; }
+.cash-checkout-summary h3 { font-size: 1.3rem; }
+.cash-checkout-summary p { margin: 4px 0; color: var(--muted); }
+.cash-change { margin: 12px 0; padding: 14px; border: 1px solid var(--line); border-radius: 14px; }
+.pos-split-row .cash-change { grid-column: 1 / -1; }
+.cash-change-total { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+.cash-change label { font-size: 1rem; font-weight: 650; }
+.cash-change input { min-height: 46px; font-size: 1.125rem; }
+.cash-change-quick { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.cash-change-quick .btn { border-radius: 999px; min-height: 42px; }
+.cash-change-result { display: grid; text-align: center; padding: 12px; border-radius: 12px; background: #e0ebd2; color: #22311f; font-weight: 650; }
+.cash-change-result strong { font-size: clamp(1.5rem, 5vw, 2rem); font-variant-numeric: tabular-nums; }
+.cash-change-short { background: #f8e5d2; color: #782d13; }

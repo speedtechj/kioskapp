@@ -1,0 +1,49 @@
+.menu-category-picker [x-cloak] { display: none !important; }
+.menu-category-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) 44px minmax(0, 1fr);
+    align-items: end;
+    gap: 10px;
+}
+.menu-category-picker .menu-category-row label { display: block; margin: 0; font-size: .9375rem; font-weight: 650; }
+.menu-category-field { position: relative; min-width: 0; }
+.menu-category-picker .menu-category-toggle,
+.menu-category-picker .menu-category-add,
+.menu-category-picker .menu-category-price input { height: 44px; box-sizing: border-box; margin-bottom: 0; }
+.menu-category-picker .menu-category-toggle { width: 100%; justify-content: space-between; margin-top: 7px; text-align: left; }
+.menu-category-toggle span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-category-picker .menu-category-add { justify-content: center; padding: 0; font-size: 1.35rem; }
+.menu-category-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    z-index: 2;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: 0 8px 24px #0002;
+}
+.menu-category-options input { width: 100%; }
+.menu-category-options ul { max-height: 180px; overflow: auto; padding: 0; margin: 6px 0 0; list-style: none; }
+.menu-category-options li button { width: 100%; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.menu-category-options li button:hover,
+.menu-category-options li button:focus-visible { background: var(--bg); }
+.menu-category-status { margin: 8px 0 0; color: #427226; }
+.menu-category-dialog {
+    width: min(440px, calc(100% - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--paper);
+    color: inherit;
+    box-shadow: 0 16px 36px #0003;
+}
+.menu-category-dialog::backdrop { background: #24282466; }
+.menu-category-dialog h3 { font-size: 1.25rem; }
+@media (max-width: 420px) {
+    .menu-category-row { grid-template-columns: minmax(0, 1fr) 44px; }
+    .menu-category-price { grid-column: 1 / -1; }
+}

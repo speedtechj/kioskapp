@@ -1,0 +1,1 @@
+@props(['name'=>'squares-2x2'])<span {{ $attributes->class(['icon']) }} aria-hidden="true">{!! svg('heroicon-o-'.$name)->toHtml() !!}</span>
