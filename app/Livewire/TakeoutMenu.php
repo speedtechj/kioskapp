@@ -14,6 +14,7 @@ use Livewire\Component;
 
 class TakeoutMenu extends Component
 {
+    use \App\Livewire\Concerns\SelectsToppings;
     use \App\Livewire\Concerns\ChecksBusinessAvailability;
 
     #[Locked]
@@ -79,6 +80,11 @@ class TakeoutMenu extends Component
         return $order;
     }
 
+    protected function toppingBusinessId(): int
+    {
+        return $this->kiosk()->business_id;
+    }
+
     public function add(int $id): void
     {
         $kiosk = $this->kiosk();
@@ -99,6 +105,9 @@ class TakeoutMenu extends Component
         if (isset($this->cart[$id])) {
             if (--$this->cart[$id] <= 0) {
                 unset($this->cart[$id]);
+                if (! $this->cart) {
+                    $this->toppingQuantities = [];
+                }
             }
         }
     }
@@ -108,7 +117,7 @@ class TakeoutMenu extends Component
         $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
         $kiosk = $this->kiosk();
-        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, null, null, $this->name, $this->notes);
+        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, null, null, $this->name, $this->notes, toppings: $this->toppingQuantities);
         Cookie::queue($this->trackingCookie($kiosk), $order->slug, 1440, '/', null, request()->isSecure(), true, false, 'lax');
         $this->redirectRoute('tracking', ['token' => $order->slug]);
     }
@@ -129,13 +138,15 @@ class TakeoutMenu extends Component
         $products = $all->filter(fn ($p) => ($this->category === 'All' || $p->category === $this->category) && str_contains(mb_strtolower($p->menuText('name', $language)), mb_strtolower($this->search)));
         $categories = $all->pluck('category')->unique();
         $cartProducts = $all->whereIn('id', array_keys($this->cart));
-        $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0));
+        $toppings = $this->cart ? $this->toppingOptions($kiosk->business_id) : collect();
+        $toppingSubtotal = $this->toppingSubtotal($toppings);
+        $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
         $fee = (int) round($subtotal * $kiosk->service_charge_bps / 10000);
 
         $orderingOpen = RegisterShifts::active($kiosk->id) !== null;
 
         $activeOrder = $this->reviewOpen ? null : $this->activeTakeoutOrder($kiosk);
 
-        return view('livewire.takeout-menu', compact('activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
+        return view('livewire.takeout-menu', compact('toppings', 'toppingSubtotal', 'activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
     }
 }

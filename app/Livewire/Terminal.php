@@ -19,6 +19,7 @@ use Livewire\Component;
 
 class Terminal extends Component
 {
+    use \App\Livewire\Concerns\SelectsToppings;
     use \App\Livewire\Concerns\ChecksBusinessAvailability;
 
     use ApprovesOrderAdjustments;
@@ -84,6 +85,14 @@ class Terminal extends Component
         Access::authorize($this->businessId, 'pos.use', $this->kioskId);
     }
 
+    protected function toppingBusinessId(): int
+    {
+        Access::authorize($this->businessId, 'pos.use', $this->kioskId);
+        $this->ensureCartEditable();
+
+        return $this->businessId;
+    }
+
     public function add(int $id): void
     {
         Access::authorize($this->businessId, 'pos.use', $this->kioskId);
@@ -102,6 +111,9 @@ class Terminal extends Component
             $this->ensureCartEditable();
             if (--$this->cart[$id] <= 0) {
                 unset($this->cart[$id]);
+                if (! $this->cart) {
+                    $this->toppingQuantities = [];
+                }
                 $this->complimentaryIds = array_values(array_diff($this->complimentaryIds, [$id]));
             }
         }
@@ -156,7 +168,8 @@ class Terminal extends Component
             throw ValidationException::withMessages(['adjustment' => 'Add available items before requesting an adjustment.']);
         }
         $lineTotal = fn ($product) => $product->price * (int) $this->cart[$product->id];
-        $subtotal = $products->sum($lineTotal);
+        $toppingLines = \App\Services\OrderToppings::lines($this->businessId, $this->toppingQuantities);
+        $subtotal = $products->sum($lineTotal) + array_sum(array_column($toppingLines, 'total'));
         $before = OrderAdjustments::totals($subtotal, $products->whereIn('id', $this->complimentaryIds)->sum($lineTotal), $this->discountType, $this->discountValue, $kiosk->service_charge_bps)['total'];
         $after = OrderAdjustments::totals($subtotal, $products->whereIn('id', $ids)->sum($lineTotal), $type, $value, $kiosk->service_charge_bps);
         if ($value !== '' && $after['discount'] === 0) {
@@ -168,7 +181,7 @@ class Terminal extends Component
         return [
             'label' => $label, 'before' => $before, 'after' => $after['total'],
             'type' => $type, 'value' => $value, 'ids' => $ids,
-            'fingerprint' => PlaceOrder::adjustmentFingerprint($this->cart, $prices, $kiosk->service_charge_bps),
+            'fingerprint' => PlaceOrder::adjustmentFingerprint($this->cart, $prices, $kiosk->service_charge_bps, $toppingLines),
         ];
     }
 
@@ -199,7 +212,7 @@ class Terminal extends Component
             $rows = RecordPayment::withCashReceived($rows);
         }
         $cashReceived = $method === 'cash' && ($requireCashReceived || $this->cashReceived !== '') ? $this->cashReceived : null;
-        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, $table, $method, payments: $rows, cashReceived: $cashReceived, complimentaryIds: $this->complimentaryIds, discountType: $this->discountType, discountValue: $this->discountValue, adjustmentApprovals: $this->adjustmentApprovals, approvedCart: $this->approvedCart);
+        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, $table, $method, payments: $rows, cashReceived: $cashReceived, complimentaryIds: $this->complimentaryIds, discountType: $this->discountType, discountValue: $this->discountValue, adjustmentApprovals: $this->adjustmentApprovals, approvedCart: $this->approvedCart, toppings: $this->toppingQuantities);
         $this->finishCheckout($order);
     }
 
@@ -220,6 +233,7 @@ class Terminal extends Component
             discountValue: $this->discountValue,
             adjustmentApprovals: $this->adjustmentApprovals,
             approvedCart: $this->approvedCart,
+            toppings: $this->toppingQuantities,
         );
         $this->finishCheckout($order);
     }
@@ -230,6 +244,7 @@ class Terminal extends Component
         $this->receiptUnpaid = $order->payment_status === 'unpaid';
         $this->receiptFree = (int) $order->total === 0;
         $this->cart = [];
+        $this->toppingQuantities = [];
         $this->reset('cashReceived', 'complimentaryIds', 'discountType', 'discountValue', 'proposedDiscountType', 'proposedDiscountValue', 'adjustmentApprovals', 'approvedCart');
         $this->resetValidation();
         $this->paymentRows = [['method' => 'gcash', 'amount' => ''], ['method' => 'cash', 'amount' => '']];
@@ -270,7 +285,9 @@ class Terminal extends Component
         $products = $all->filter(fn ($p) => ($this->category === 'All' || $p->category === $this->category) && str_contains(strtolower($p->name), strtolower($this->search)));
         $categories = $all->pluck('category')->unique();
         $cartProducts = $all->whereIn('id', array_keys($this->cart));
-        $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0));
+        $toppings = $this->cart ? $this->toppingOptions($kiosk->business_id) : collect();
+        $toppingSubtotal = $this->toppingSubtotal($toppings);
+        $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
         $complimentary = $cartProducts->whereIn('id', $this->complimentaryIds)
             ->sum(fn ($product) => $product->price * ($this->cart[$product->id] ?? 0));
         $adjustmentsValid = true;
@@ -284,6 +301,6 @@ class Terminal extends Component
 
         $registerShift = RegisterShifts::active($this->kioskId);
 
-        return view('livewire.terminal', compact('business', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'incoming', 'discount', 'complimentary', 'totalDue', 'adjustmentsValid', 'registerShift'))->layout('layouts.app', ['title' => 'Point of sale']);
+        return view('livewire.terminal', compact('toppings', 'toppingSubtotal', 'business', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'incoming', 'discount', 'complimentary', 'totalDue', 'adjustmentsValid', 'registerShift'))->layout('layouts.app', ['title' => 'Point of sale']);
     }
 }

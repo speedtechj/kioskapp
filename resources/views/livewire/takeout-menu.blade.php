@@ -77,6 +77,8 @@
                 @endforelse
             </div>
 
+            @include('livewire.partials.topping-picker', ['canIncrease' => $orderingOpen])
+
             <label>Name for pickup <span class="muted">(optional)</span>
                 <input wire:model="name" maxlength="80" autocomplete="given-name" placeholder="What should we call you?">
             </label>

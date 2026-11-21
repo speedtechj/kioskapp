@@ -13,6 +13,7 @@ use Livewire\Component;
 
 class CustomerMenu extends Component
 {
+    use \App\Livewire\Concerns\SelectsToppings;
     use \App\Livewire\Concerns\ChecksBusinessAvailability;
 
     #[Locked]
@@ -48,6 +49,11 @@ class CustomerMenu extends Component
         return $table;
     }
 
+    protected function toppingBusinessId(): int
+    {
+        return $this->table()->kiosk->business_id;
+    }
+
     public function add(int $id): void
     {
         $table = $this->table();
@@ -66,6 +72,9 @@ class CustomerMenu extends Component
         if (isset($this->cart[$id])) {
             if (--$this->cart[$id] <= 0) {
                 unset($this->cart[$id]);
+                if (! $this->cart) {
+                    $this->toppingQuantities = [];
+                }
             }
         }
     }
@@ -75,7 +84,7 @@ class CustomerMenu extends Component
         $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
         $table = $this->table();
-        $order = app(PlaceOrder::class)->handle($table->kiosk, $this->cart, $this->requestKey, $table, null, $this->name, $this->notes);
+        $order = app(PlaceOrder::class)->handle($table->kiosk, $this->cart, $this->requestKey, $table, null, $this->name, $this->notes, toppings: $this->toppingQuantities);
         $this->redirectRoute('tracking', ['token' => $order->slug]);
     }
 
@@ -90,11 +99,13 @@ class CustomerMenu extends Component
         $products = $all->filter(fn ($p) => ($this->category === 'All' || $p->category === $this->category) && str_contains(mb_strtolower($p->menuText('name', $language)), mb_strtolower($this->search)));
         $categories = $all->pluck('category')->unique();
         $cartProducts = $all->whereIn('id', array_keys($this->cart));
-        $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0));
+        $toppings = $this->cart ? $this->toppingOptions($table->kiosk->business_id) : collect();
+        $toppingSubtotal = $this->toppingSubtotal($toppings);
+        $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
         $fee = (int) round($subtotal * $table->kiosk->service_charge_bps / 10000);
 
         $orderingOpen = RegisterShifts::active($table->kiosk_id) !== null;
 
-        return view('livewire.customer-menu', compact('orderingOpen', 'table', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Order at '.$table->kiosk->business->name, 'manifestUrl' => route('menu.manifest', [$table->kiosk->business, $table->kiosk, $table])]);
+        return view('livewire.customer-menu', compact('toppings', 'toppingSubtotal', 'orderingOpen', 'table', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Order at '.$table->kiosk->business->name, 'manifestUrl' => route('menu.manifest', [$table->kiosk->business, $table->kiosk, $table])]);
     }
 }

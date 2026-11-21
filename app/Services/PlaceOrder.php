@@ -11,17 +11,17 @@ use Illuminate\Validation\ValidationException;
 
 class PlaceOrder
 {
-    public static function adjustmentFingerprint(array $cart, array $prices, int $serviceRate): string
+    public static function adjustmentFingerprint(array $cart, array $prices, int $serviceRate, array $toppingLines = []): string
     {
         $cart = array_map('intval', $cart);
         $prices = array_map('intval', $prices);
         ksort($cart);
         ksort($prices);
 
-        return hash('sha256', json_encode([$cart, $prices, $serviceRate], JSON_THROW_ON_ERROR));
+        return hash('sha256', json_encode($toppingLines === [] ? [$cart, $prices, $serviceRate] : [$cart, $prices, $serviceRate, $toppingLines], JSON_THROW_ON_ERROR));
     }
 
-    public function handle(Kiosk $kiosk, array $cart, string $requestKey, ?DiningTable $table = null, ?string $method = null, ?string $name = null, ?string $notes = null, ?array $payments = null, bool $payAtPickup = false, ?string $cashReceived = null, array $complimentaryIds = [], string $discountType = 'percent', string $discountValue = '', array $adjustmentApprovals = [], string $approvedCart = ''): Order
+    public function handle(Kiosk $kiosk, array $cart, string $requestKey, ?DiningTable $table = null, ?string $method = null, ?string $name = null, ?string $notes = null, ?array $payments = null, bool $payAtPickup = false, ?string $cashReceived = null, array $complimentaryIds = [], string $discountType = 'percent', string $discountValue = '', array $adjustmentApprovals = [], string $approvedCart = '', array $toppings = []): Order
     {
         abort_unless($kiosk->active, 404);
         if ($table) {
@@ -48,7 +48,7 @@ class PlaceOrder
             }
         }
 
-        return DB::transaction(function () use ($kiosk, $cart, $requestKey, $table, $method, $name, $notes, $payments, $isPos, $payAtPickup, $cashReceived, $complimentaryIds, $discountType, $discountValue, $adjustmentApprovals, $approvedCart) {
+        return DB::transaction(function () use ($kiosk, $cart, $requestKey, $table, $method, $name, $notes, $payments, $isPos, $payAtPickup, $cashReceived, $complimentaryIds, $discountType, $discountValue, $adjustmentApprovals, $approvedCart, $toppings) {
             BusinessAvailability::enforce($kiosk->business_id, lock: true);
             $locked = Kiosk::whereKey($kiosk->id)->lockForUpdate()->firstOrFail();
             abort_unless($locked->active, 404);
@@ -67,15 +67,16 @@ class PlaceOrder
             if ($products->count() !== count($cart)) {
                 throw ValidationException::withMessages(['cart' => 'An item is no longer available. Please refresh your basket.']);
             }
+            $toppingLines = OrderToppings::lines($kiosk->business_id, $toppings, lock: true);
             if ($complimentaryIds && $discountValue !== '') {
                 throw ValidationException::withMessages(['adjustment' => 'Choose either a discount or complimentary items.']);
             }
             if (($complimentaryIds || $discountValue !== '') && (! $adjustmentApprovals
-                || $approvedCart !== self::adjustmentFingerprint($cart, $products->pluck('price', 'id')->all(), $locked->service_charge_bps))) {
+                || $approvedCart !== self::adjustmentFingerprint($cart, $products->pluck('price', 'id')->all(), $locked->service_charge_bps, $toppingLines))) {
                 throw ValidationException::withMessages(['adjustment' => 'Get manager approval for the current cart before checkout.']);
             }
 
-            $subtotal = 0;
+            $subtotal = array_sum(array_column($toppingLines, 'total'));
             $items = [];
             $complimentary = 0;
             foreach ($products as $product) {
@@ -95,6 +96,9 @@ class PlaceOrder
             $order = Order::create(['token' => (string) Str::uuid(), 'request_key' => $requestKey, 'business_id' => $kiosk->business_id, 'kiosk_id' => $kiosk->id, 'dining_table_id' => $table?->id, 'user_id' => $isPos ? auth()->id() : null, 'source' => $isPos ? 'pos' : 'qr', 'payment_status' => $isPos && $totalDue === 0 ? 'paid' : 'unpaid', 'payment_method' => null, 'subtotal' => $subtotal, 'complimentary_amount' => $complimentary, 'discount_amount' => $discount, 'service_charge' => $fee, 'total' => $totalDue, 'customer_name' => $name, 'notes' => $notes]);
             if ($adjustmentApprovals) {
                 $order->forceFill(['adjustment_approvals' => $adjustmentApprovals])->save();
+            }
+            if ($toppingLines) {
+                $order->forceFill(['topping_lines' => $toppingLines])->save();
             }
             $order->items()->createMany($items);
             foreach ($products as $product) {

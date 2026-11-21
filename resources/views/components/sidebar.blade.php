@@ -43,7 +43,7 @@
     <x-g-icon name="arrow-up-right"/>
 </a>
 <div class="nav-caption">WORKSPACE</div><nav>
-@foreach(['overview'=>['home','Overview','dashboard.view'],'orders'=>['shopping-bag','Orders','orders.view'],'menu'=>['squares-2x2','Menu','menu.manage'],'inventory'=>['cube','Inventory','inventory.manage'],'kiosks'=>['building-storefront','Kiosks & QR','kiosks.manage'],'staff'=>['users','Team & access','staff.manage'],'reports'=>['chart-bar','Reports','reports.view']] as $key=>[$icon,$label,$permission])
+@foreach(['overview'=>['home','Overview','dashboard.view'],'orders'=>['shopping-bag','Orders','orders.view'],'menu'=>['squares-2x2','Menu','menu.manage'],'toppings'=>['cube','Toppings','menu.manage'],'inventory'=>['cube','Inventory','inventory.manage'],'kiosks'=>['building-storefront','Kiosks & QR','kiosks.manage'],'staff'=>['users','Team & access','staff.manage'],'reports'=>['chart-bar','Reports','reports.view']] as $key=>[$icon,$label,$permission])
 @if(\App\Services\Access::allows(auth()->user(),$business->id,$permission))
 @if(isset($this) && $this instanceof \App\Livewire\Workspace)<button wire:click="navigate('{{ $key }}')" @click="navOpen=false" class="nav-item {{ $key === 'orders' ? 'staff-order-link' : '' }} {{ $mode===$key?'active':'' }}"><x-g-icon :name="$icon"/>{{ $label }}</button>
 @else<a href="{{ route('workspace',['business'=>$business,'tab'=>$key]) }}" class="nav-item {{ $key === 'orders' ? 'staff-order-link' : '' }}"><x-g-icon :name="$icon"/>{{ $label }}</a>@endif

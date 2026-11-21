@@ -63,7 +63,21 @@
 @else
     ₱{{ number_format($p->price*$cart[$p->id]/100,2) }}
 @endif
-</strong></div>@empty<div class="cart-empty"><span class="orange-icon"><x-g-icon name="shopping-bag"/></span><h3>Something delicious awaits.</h3><p>Tap a menu item to start an order.</p></div>@endforelse</div><div class="cart-checkout"><div class="checkout-totals"><div class="total-row"><span>Subtotal</span><span>₱{{ number_format($subtotal/100,2) }}</span></div>@if($complimentary > 0)<div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($complimentary / 100, 2) }}</strong></div>@endif
+</strong></div>@empty<div class="cart-empty"><span class="orange-icon"><x-g-icon name="shopping-bag"/></span><h3>Something delicious awaits.</h3><p>Tap a menu item to start an order.</p></div>@endforelse
+<div x-show="!payStep">
+    @include('livewire.partials.topping-picker', ['canIncrease' => (bool) $registerShift, 'canEdit' => !$complimentaryIds && $discountValue === ''])
+</div>
+<div x-show="payStep">
+    @foreach($toppings as $topping)
+        @if($quantity = $toppingQuantities[$topping->id] ?? 0)
+            <div class="total-row">
+                <span>{{ $quantity }} × {{ $topping->name }}</span>
+                <strong>{{ $topping->active ? '₱'.number_format($topping->price*$quantity/100, 2) : 'Unavailable' }}</strong>
+            </div>
+        @endif
+    @endforeach
+</div>
+</div><div class="cart-checkout"><div class="checkout-totals"><div class="total-row"><span>Subtotal</span><span>₱{{ number_format($subtotal/100,2) }}</span></div>@if($complimentary > 0)<div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($complimentary / 100, 2) }}</strong></div>@endif
 @if($discount > 0)<div class="total-row"><span>Discount</span><strong>−₱{{ number_format($discount / 100, 2) }}</strong></div>@endif
 <div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div><div class="total-row grand-total"><strong>Order total</strong><strong>₱{{ number_format($totalDue/100,2) }}</strong></div></div>@if($cart && \App\Services\Access::allows(auth()->user(), $business->id, 'orders.pay'))
 <details class="pos-adjustments" wire:key="pos-adjustments" wire:ignore.self>

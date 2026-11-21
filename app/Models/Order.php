@@ -15,7 +15,7 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['adjustment_approvals' => 'array'];
+        return ['adjustment_approvals' => 'array', 'topping_lines' => 'array'];
     }
 
     public function payments(): HasMany

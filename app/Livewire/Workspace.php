@@ -62,13 +62,61 @@ class Workspace extends Component
 
     public ?int $editingId = null;
 
-    private const SECTIONS = ['overview' => 'dashboard.view', 'orders' => 'orders.view', 'menu' => 'menu.manage', 'inventory' => 'inventory.manage', 'kiosks' => 'kiosks.manage', 'staff' => 'staff.manage', 'reports' => 'reports.view'];
+    private const SECTIONS = ['overview' => 'dashboard.view', 'orders' => 'orders.view', 'menu' => 'menu.manage', 'toppings' => 'menu.manage', 'inventory' => 'inventory.manage', 'kiosks' => 'kiosks.manage', 'staff' => 'staff.manage', 'reports' => 'reports.view'];
 
     public function mount(Business $business): void
     {
         $this->businessId = $business->id;
         $this->orderDate = $this->appliedOrderDate = today()->toDateString();
         $this->authorizeSection();
+    }
+
+    public ?int $toppingId = null;
+
+    public bool $toppingEditorOpen = false;
+
+    public array $toppingForm = [];
+
+    public function editTopping(?int $id = null): void
+    {
+        Access::authorize($this->businessId, 'menu.manage');
+        $topping = $id === null ? null : \App\Services\OrderToppings::catalog($this->businessId)->where('id', $id)->first();
+        abort_if($id !== null && ! $topping, 404);
+
+        $this->toppingId = $id;
+        $this->toppingForm = [
+            'name' => $topping->name ?? '',
+            'price' => $topping ? \App\Services\Money::input($topping->price) : '',
+            'active' => $topping ? (bool) $topping->active : true,
+        ];
+        $this->resetValidation();
+        $this->toppingEditorOpen = true;
+    }
+
+    public function saveTopping(): void
+    {
+        Access::authorize($this->businessId, 'menu.manage');
+        $form = $this->validate([
+            'toppingForm.name' => 'required|string|max:100',
+            'toppingForm.price' => ['required', 'regex:/^\d{1,7}(\.\d{1,2})?$/D', 'numeric', 'min:0.01'],
+            'toppingForm.active' => 'required|boolean',
+        ])['toppingForm'];
+        $data = [
+            'name' => trim($form['name']),
+            'price' => \App\Services\Money::cents((string) $form['price']),
+            'active' => $form['active'],
+        ];
+
+        $catalog = \App\Services\OrderToppings::catalog($this->businessId);
+        if ($this->toppingId === null) {
+            $catalog->insert($data + ['business_id' => $this->businessId]);
+        } else {
+            $row = $catalog->where('id', $this->toppingId);
+            abort_unless($row->exists(), 404);
+            $row->update($data);
+        }
+
+        $this->toppingEditorOpen = false;
     }
 
     public function navigate(string $section): void
@@ -457,6 +505,8 @@ class Workspace extends Component
             $chart[] = ['label' => $date->format('D'), 'value' => (int) (clone $base)->where('payment_status', 'paid')->whereDate('created_at', $date)->sum('total')];
         }
 
-        return view('livewire.workspace', compact('business', 'kiosks', 'sales', 'count', 'average', 'activeTables', 'orderReport', 'recent', 'products', 'staff', 'inventory', 'tables', 'best', 'chart'))->layout('layouts.app', ['title' => ucfirst($this->section)]);
+        $toppings = $this->section === 'toppings' ? \App\Services\OrderToppings::catalog($this->businessId)->orderBy('name')->get() : collect();
+
+        return view('livewire.workspace', compact('toppings', 'business', 'kiosks', 'sales', 'count', 'average', 'activeTables', 'orderReport', 'recent', 'products', 'staff', 'inventory', 'tables', 'best', 'chart'))->layout('layouts.app', ['title' => ucfirst($this->section)]);
     }
 }

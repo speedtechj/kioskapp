@@ -1,0 +1,48 @@
+.order-toppings {
+    margin-block: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+}
+
+.order-toppings summary {
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.order-topping {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding: 8px;
+    overflow-wrap: anywhere;
+}
+
+.order-topping small {
+    display: block;
+    color: #555a50;
+}
+
+.order-topping-quantity {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+}
+
+.order-topping-quantity .btn {
+    justify-content: center;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 1.2rem;
+}
+
+.order-toppings .total-row {
+    padding: 8px;
+    margin: 0;
+}

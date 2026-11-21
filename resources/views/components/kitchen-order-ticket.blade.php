@@ -20,6 +20,8 @@
         @foreach($order->items as $item)
             <li><strong>{{ $item->quantity }} ×</strong> {{ $item->name }}</li>
         @endforeach
+@include('livewire.partials.saved-topping-lines', ['kitchen' => true])
+
     </ul>
     @if($order->notes)<p class="kitchen-order-note"><strong>Note</strong> {{ $order->notes }}</p>@endif
     @if($paymentPending)
