@@ -42,7 +42,22 @@
     font-size: 1.2rem;
 }
 
-.order-toppings .total-row {
-    padding: 8px;
-    margin: 0;
+.topping-subtotal-breakdown {
+    padding-inline-start: 8px;
+    margin-block: -5px 12px;
+}
+
+.topping-subtotal-breakdown .total-row {
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: .875rem;
+    color: #555a50;
+}
+
+.topping-subtotal-breakdown .total-row span:first-child {
+    overflow-wrap: anywhere;
+}
+
+.topping-subtotal-breakdown .total-row span:last-child {
+    white-space: nowrap;
 }

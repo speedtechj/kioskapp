@@ -77,7 +77,9 @@
         @endif
     @endforeach
 </div>
-</div><div class="cart-checkout"><div class="checkout-totals"><div class="total-row"><span>Subtotal</span><span>₱{{ number_format($subtotal/100,2) }}</span></div>@if($complimentary > 0)<div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($complimentary / 100, 2) }}</strong></div>@endif
+</div><div class="cart-checkout"><div class="checkout-totals"><div class="total-row"><span>Subtotal</span><span>₱{{ number_format($subtotal/100,2) }}</span></div>
+@include('livewire.partials.topping-subtotal-breakdown')
+@if($complimentary > 0)<div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($complimentary / 100, 2) }}</strong></div>@endif
 @if($discount > 0)<div class="total-row"><span>Discount</span><strong>−₱{{ number_format($discount / 100, 2) }}</strong></div>@endif
 <div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div><div class="total-row grand-total"><strong>Order total</strong><strong>₱{{ number_format($totalDue/100,2) }}</strong></div></div>@if($cart && \App\Services\Access::allows(auth()->user(), $business->id, 'orders.pay'))
 <details class="pos-adjustments" wire:key="pos-adjustments" wire:ignore.self>

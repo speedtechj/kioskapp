@@ -18,8 +18,5 @@
                 </div>
             </div>
         @endforeach
-        @if($toppingSubtotal > 0)
-            <div class="total-row"><span>Toppings subtotal</span><strong>₱{{ number_format($toppingSubtotal / 100, 2) }}</strong></div>
-        @endif
     </details>
 @endif

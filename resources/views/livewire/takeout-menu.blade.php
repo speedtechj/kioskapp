@@ -89,6 +89,8 @@
 
         <section class="takeout-totals" aria-label="Order totals">
             <div class="total-row"><span>Subtotal</span><span>₱{{ number_format($subtotal/100,2) }}</span></div>
+@include('livewire.partials.topping-subtotal-breakdown')
+
             <div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div>
             <div class="total-row grand-total"><strong>Total</strong><strong>₱{{ number_format(($subtotal+$fee)/100,2) }}</strong></div>
         </section>
