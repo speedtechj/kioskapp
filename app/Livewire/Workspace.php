@@ -145,22 +145,77 @@ class Workspace extends Component
             }
         }]]);
 
-        $normalized = Str::lower($this->newCategoryName);
-        $existing = collect($this->menuCategories())->first(fn (string $name) => Str::lower(trim($name)) === $normalized);
-        $nameKey = hash('sha256', $normalized);
-        $inserted = DB::table('menu_categories')->insertOrIgnore([
-            'business_id' => $this->businessId,
-            'name_key' => $nameKey,
-            'name' => $existing ?? $this->newCategoryName,
-        ]);
+        DB::transaction(function () {
+            Business::query()->lockForUpdate()->findOrFail($this->businessId);
+            $normalized = Str::lower($this->newCategoryName);
+            $existing = collect($this->menuCategories())->first(fn (string $name) => Str::lower(trim($name)) === $normalized);
+            $nameKey = hash('sha256', $normalized);
+            $inserted = DB::table('menu_categories')->insertOrIgnore([
+                'business_id' => $this->businessId,
+                'name_key' => $nameKey,
+                'name' => $existing ?? $this->newCategoryName,
+            ]);
 
-        $this->form['category'] = DB::table('menu_categories')->where('business_id', $this->businessId)
-            ->where('name_key', $nameKey)->value('name');
-        if ($inserted) {
-            BusinessAudit::record($this->businessId, 'Menu category created', $this->form['category']);
-        }
+            $this->form['category'] = DB::table('menu_categories')->where('business_id', $this->businessId)
+                ->where('name_key', $nameKey)->value('name');
+            if ($inserted) {
+                BusinessAudit::record($this->businessId, 'Menu category created', $this->form['category']);
+            }
+        });
         $this->reset('newCategoryName');
         $this->dispatch('menu-category-added', name: $this->form['category']);
+    }
+
+    public function removeMenuCategory(string $category, string $replacement = ''): void
+    {
+        Access::authorize($this->businessId, 'menu.manage');
+        abort_unless($this->modal && $this->formType === 'product', 403);
+
+        $this->resetValidation('categoryRemoval');
+
+        DB::transaction(function () use ($category, $replacement) {
+            Business::query()->lockForUpdate()->findOrFail($this->businessId);
+            $categories = $this->menuCategories();
+            if (! in_array($category, $categories, true)) {
+                throw ValidationException::withMessages(['categoryRemoval' => 'This category is no longer available.']);
+            }
+
+            $key = Str::lower(trim($category));
+            $products = Product::where('business_id', $this->businessId);
+            $productIds = (clone $products)->pluck('category', 'id')
+                ->filter(fn (?string $name) => $name !== null && Str::lower(trim($name)) === $key)->keys();
+
+            if ($productIds->isNotEmpty()) {
+                if ($replacement === $category || ! in_array($replacement, $categories, true)) {
+                    throw ValidationException::withMessages(['categoryRemoval' => 'Choose another category to keep these products on the menu.']);
+                }
+
+                $products->whereKey($productIds->all())->update(['category' => $replacement]);
+            }
+
+            DB::table('menu_categories')->where('business_id', $this->businessId)
+                ->where('name_key', hash('sha256', $key))->delete();
+        });
+
+        if (Str::lower(trim($this->form['category'] ?? '')) === Str::lower(trim($category))) {
+            $this->form['category'] = $replacement !== $category && in_array($replacement, $this->menuCategories(), true)
+                ? $replacement : '';
+        }
+
+        $this->dispatch('menu-category-removed', name: $category);
+    }
+
+    public function resetValidationForCategoryRemoval(): void
+    {
+        $this->resetValidation('categoryRemoval');
+    }
+
+    public function menuCategoryProductCounts(): array
+    {
+        Access::authorize($this->businessId, 'menu.manage');
+
+        return Product::where('business_id', $this->businessId)->whereNotNull('category')->pluck('category')
+            ->countBy(fn (string $name) => Str::lower(trim($name)))->all();
     }
 
     public function resetMenuCategoryInput(): void
@@ -271,6 +326,11 @@ class Workspace extends Component
                     $data['image'] = '/storage/'.$storedPath;
                 }
                 DB::transaction(function () use ($product, $data) {
+                    Business::query()->lockForUpdate()->findOrFail($this->businessId);
+                    if (! collect($this->menuCategories())->contains(fn (string $name) => Str::lower(trim($name)) === Str::lower(trim($data['category'])))) {
+                        throw ValidationException::withMessages(['form.category' => 'Select an available category.']);
+                    }
+
                     $product->visible_kiosk_ids = $this->allMenuKiosks ? null : array_map('intval',array_values($this->menuKiosks));
                     $product->fill($data)->save();
                     foreach (Kiosk::where('business_id', $this->businessId)->get() as $kiosk) {

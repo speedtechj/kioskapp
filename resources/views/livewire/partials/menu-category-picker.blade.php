@@ -3,7 +3,8 @@
 @endassets
 
 <div class="menu-category-picker"
-    x-data="{ expanded: false, search: '', added: '', saving: false }"
+    x-data="{ expanded: false, search: '', added: '', removed: '', saving: false, selected: '', replacement: '', counts: {} }"
+    @menu-category-removed.window="removed = $event.detail.name; $refs.manageDialog.close(); $refs.categoryToggle.focus()"
     @menu-category-added.window="added = $event.detail.name; $refs.categoryDialog.close()">
     <div class="menu-category-row">
         <div class="menu-category-field" @click.outside="expanded = false"
@@ -31,6 +32,10 @@
                     @endforeach
                 </ul>
                 <p x-show="!@js($categories).some(name => name.toLowerCase().includes(search.trim().toLowerCase()))">No matching categories.</p>
+                <button type="button" class="btn menu-category-manage"
+                    @click="expanded = false; selected = ''; replacement = ''; removed = ''; added = ''; counts = @js($this->menuCategoryProductCounts()); $refs.manageDialog.showModal()">
+                    Manage categories
+                </button>
             </div>
         </div>
         <button type="button" class="btn primary menu-category-add" aria-label="Add category" title="Add category"
@@ -39,6 +44,8 @@
             <input type="number" min="0.01" step="0.01" wire:model="form.price" required>
         </label>
     </div>
+    @error('form.category')<p class="error" role="alert">{{ $message }}</p>@enderror
+    <p class="menu-category-status" role="status" x-show="removed" x-cloak x-text="removed + ' removed'"></p>
     <p class="menu-category-status" role="status" x-show="added" x-cloak>✓ <span x-text="added + ' added'"></span></p>
 
     <dialog wire:ignore.self x-ref="categoryDialog" class="menu-category-dialog" aria-labelledby="add-category-title"
@@ -56,6 +63,46 @@
             <button type="button" class="btn" @click="$refs.categoryDialog.close()">Cancel</button>
             <button type="button" class="btn primary" :disabled="saving"
                 @click="saving = true; $wire.addMenuCategory().finally(() => saving = false)">Add category</button>
+        </div>
+    </dialog>
+
+    <dialog wire:ignore.self x-ref="manageDialog" class="menu-category-dialog" aria-labelledby="manage-category-title"
+        @cancel.stop.prevent="if (!saving) { $refs.manageDialog.close(); $refs.categoryToggle.focus() }">
+        <div class="section-line">
+            <h3 id="manage-category-title" x-text="selected ? 'Remove ' + selected + ' category?' : 'Manage categories'"></h3>
+        </div>
+        <div x-show="!selected">
+            <ul class="menu-category-list">
+                @foreach($categories as $category)
+                    <li wire:key="manage-category-{{ sha1($category) }}">
+                        <span>{{ $category }}</span>
+                        <button type="button" class="btn" aria-label="Remove {{ $category }}"
+                            @click="selected = @js($category); replacement = ''; $wire.resetValidationForCategoryRemoval()">Remove</button>
+                    </li>
+                @endforeach
+            </ul>
+            @if($categories === [])<p>No categories to manage.</p>@endif
+        </div>
+        <div x-show="selected" x-cloak>
+            <p x-show="counts[selected.trim().toLowerCase()] > 0">Move the products in this category to keep them on the menu.</p>
+            <label x-show="counts[selected.trim().toLowerCase()] > 0">Move products to
+                <select x-model="replacement">
+                    <option value="">Select a category</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category }}" :disabled="selected === @js($category)">{{ $category }}</option>
+                    @endforeach
+                </select>
+            </label>
+            @error('categoryRemoval')<p class="error" role="alert">{{ $message }}</p>@enderror
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn" :disabled="saving"
+                @click="$refs.manageDialog.close(); $refs.categoryToggle.focus()" x-text="selected ? 'Cancel' : 'Done'"></button>
+            <button type="button" class="btn menu-category-remove" x-show="selected" x-cloak
+                :disabled="saving || (counts[selected.trim().toLowerCase()] > 0 && !replacement)"
+                @click="saving = true; $wire.removeMenuCategory(selected, replacement).finally(() => saving = false)">
+                Remove category
+            </button>
         </div>
     </dialog>
 </div>

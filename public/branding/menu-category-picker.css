@@ -47,3 +47,17 @@
     .menu-category-row { grid-template-columns: minmax(0, 1fr) 44px; }
     .menu-category-price { grid-column: 1 / -1; }
 }
+
+.menu-category-options .menu-category-manage { width: 100%; justify-content: center; margin-top: 8px; }
+.menu-category-list { list-style: none; margin: 12px 0; padding: 0; }
+.menu-category-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+}
+.menu-category-list li span { overflow-wrap: anywhere; }
+.menu-category-dialog .menu-category-remove { background: #a52720; border-color: #a52720; color: white; }
+.menu-category-dialog .menu-category-remove:disabled { opacity: .55; }
