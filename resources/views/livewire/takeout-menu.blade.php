@@ -5,6 +5,16 @@
 <main wire:poll.15s class="customer-app takeout-app{{ $reviewOpen ? ' takeout-checkout' : '' }}">
 @if(!$reviewOpen)
 <header class="takeout-header"><a href="{{ route('takeout',[$kiosk->business,$kiosk]) }}" class="takeout-logo"><img src="{{ $kiosk->logoUrl() }}" width="32" height="32" alt="" style="display:inline-block;object-fit:contain;border-radius:6px;margin-right:6px">{{ $kiosk->business->name==='Gather Restaurant'?'Gather':$kiosk->business->name }}<span class="brand-dot">.</span></a><span class="takeout-location"><x-g-icon name="map-pin"/>{{ $kiosk->name }}</span><span class="takeout-badge">Takeout</span></header>
+@if($activeOrder)
+    <section class="pickup-info" style="background: var(--soft-orange); flex-wrap: wrap">
+        <x-g-icon name="shopping-bag"/>
+        <div>
+            <strong>Order #{{ str_pad($activeOrder->id, 4, '0', STR_PAD_LEFT) }}</strong>
+            <p>{{ ['received' => 'Received', 'preparing' => 'Preparing', 'ready' => 'Ready for pickup'][$activeOrder->status] }}</p>
+        </div>
+        <a class="btn primary" href="{{ route('tracking', ['token' => $activeOrder->slug]) }}">Track my order</a>
+    </section>
+@endif
 @include('livewire.partials.ordering-closed')
 @if($languages)
     <label class="menu-language">Menu language

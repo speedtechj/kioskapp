@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Models\Business;
 use App\Models\Kiosk;
+use App\Models\Order;
 use App\Services\PlaceOrder;
 use App\Services\RegisterShifts;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -36,12 +38,45 @@ class TakeoutMenu extends Component
     {
         $this->token = $kiosk->takeout_token;
         $this->requestKey = (string) Str::uuid();
-        $this->kiosk();
+        $kiosk = $this->kiosk();
+        $order = $this->activeTakeoutOrder($kiosk);
+        if ($order && ! request()->boolean('browse')) {
+            $this->redirectRoute('tracking', ['token' => $order->slug]);
+        }
     }
 
     protected function kiosk(): Kiosk
     {
         return Kiosk::with('business')->where('takeout_token', $this->token)->where('active', true)->firstOrFail();
+    }
+
+    private function trackingCookie(Kiosk $kiosk): string
+    {
+        return 'takeout_order_'.$kiosk->id;
+    }
+
+    private function activeTakeoutOrder(Kiosk $kiosk): ?Order
+    {
+        $cookie = $this->trackingCookie($kiosk);
+        $slug = request()->cookie($cookie);
+        if (! is_string($slug) || $slug === '') {
+            return null;
+        }
+
+        $order = Order::query()
+            ->where('slug', $slug)
+            ->where('business_id', $kiosk->business_id)
+            ->where('kiosk_id', $kiosk->id)
+            ->whereNull('dining_table_id')
+            ->where('source', 'qr')
+            ->whereIn('status', ['received', 'preparing', 'ready'])
+            ->first();
+
+        if (! $order) {
+            Cookie::expire($cookie, '/');
+        }
+
+        return $order;
     }
 
     public function add(int $id): void
@@ -72,7 +107,9 @@ class TakeoutMenu extends Component
     {
         $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
-        $order = app(PlaceOrder::class)->handle($this->kiosk(), $this->cart, $this->requestKey, null, null, $this->name, $this->notes);
+        $kiosk = $this->kiosk();
+        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, null, null, $this->name, $this->notes);
+        Cookie::queue($this->trackingCookie($kiosk), $order->slug, 1440, '/', null, request()->isSecure(), true, false, 'lax');
         $this->redirectRoute('tracking', ['token' => $order->slug]);
     }
 
@@ -97,6 +134,8 @@ class TakeoutMenu extends Component
 
         $orderingOpen = RegisterShifts::active($kiosk->id) !== null;
 
-        return view('livewire.takeout-menu', compact('orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
+        $activeOrder = $this->reviewOpen ? null : $this->activeTakeoutOrder($kiosk);
+
+        return view('livewire.takeout-menu', compact('activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
     }
 }
