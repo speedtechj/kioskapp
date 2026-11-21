@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\DiningTable;
 use App\Models\Kiosk;
 use App\Services\PlaceOrder;
+use App\Services\RegisterShifts;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -50,6 +51,9 @@ class CustomerMenu extends Component
     public function add(int $id): void
     {
         $table = $this->table();
+        if (! RegisterShifts::active($table->kiosk_id)) {
+            return;
+        }
         $p = $table->kiosk->visibleProducts()->where('business_id', $table->kiosk->business_id)->where('active', true)->findOrFail($id);
         $qty = ($this->cart[$id] ?? 0) + 1;
         if ($qty <= $p->pivot->stock && $qty <= 99) {
@@ -68,6 +72,7 @@ class CustomerMenu extends Component
 
     public function submit(): void
     {
+        $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
         $table = $this->table();
         $order = app(PlaceOrder::class)->handle($table->kiosk, $this->cart, $this->requestKey, $table, null, $this->name, $this->notes);
@@ -88,6 +93,8 @@ class CustomerMenu extends Component
         $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0));
         $fee = (int) round($subtotal * $table->kiosk->service_charge_bps / 10000);
 
-        return view('livewire.customer-menu', compact('table', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Order at '.$table->kiosk->business->name, 'manifestUrl' => route('menu.manifest', [$table->kiosk->business, $table->kiosk, $table])]);
+        $orderingOpen = RegisterShifts::active($table->kiosk_id) !== null;
+
+        return view('livewire.customer-menu', compact('orderingOpen', 'table', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Order at '.$table->kiosk->business->name, 'manifestUrl' => route('menu.manifest', [$table->kiosk->business, $table->kiosk, $table])]);
     }
 }

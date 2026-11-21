@@ -59,6 +59,9 @@ return $u;
                 }
             }
             Auth::login($owner);
+            \App\Services\RegisterShifts::open($main, 0);
+            \App\Services\RegisterShifts::open($second, 0);
+
             $products = $b->products()->get();
             foreach (range(0, 34) as $n) {
                 $k = $n % 4 === 0 ? $second : $main;

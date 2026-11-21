@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Business;
 use App\Models\Kiosk;
 use App\Services\PlaceOrder;
+use App\Services\RegisterShifts;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -46,6 +47,9 @@ class TakeoutMenu extends Component
     public function add(int $id): void
     {
         $kiosk = $this->kiosk();
+        if (! RegisterShifts::active($kiosk->id)) {
+            return;
+        }
         $product = $kiosk->visibleProducts()->where('business_id', $kiosk->business_id)->where('active', true)->findOrFail($id);
         $quantity = ($this->cart[$id] ?? 0) + 1;
         if ($quantity <= $product->pivot->stock && $quantity <= 99) {
@@ -66,6 +70,7 @@ class TakeoutMenu extends Component
 
     public function submit(): void
     {
+        $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
         $order = app(PlaceOrder::class)->handle($this->kiosk(), $this->cart, $this->requestKey, null, null, $this->name, $this->notes);
         $this->redirectRoute('tracking', ['token' => $order->slug]);
@@ -90,6 +95,8 @@ class TakeoutMenu extends Component
         $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0));
         $fee = (int) round($subtotal * $kiosk->service_charge_bps / 10000);
 
-        return view('livewire.takeout-menu', compact('kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
+        $orderingOpen = RegisterShifts::active($kiosk->id) !== null;
+
+        return view('livewire.takeout-menu', compact('orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
     }
 }

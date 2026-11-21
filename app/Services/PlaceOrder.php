@@ -59,7 +59,9 @@ class PlaceOrder
                 return $existing;
             }
             if ($isPos) {
-                RegisterShifts::requireOpen($kiosk->id);
+                RegisterShifts::requireOpen($locked->id);
+            } elseif (! RegisterShifts::active($locked->id)) {
+                throw ValidationException::withMessages(['ordering' => 'Ordering isn’t open yet. Please check back shortly.']);
             }
             $products = $kiosk->visibleProducts()->where('business_id', $kiosk->business_id)->where('active', true)->whereIn('products.id', array_keys($cart))->orderBy('products.id')->lockForUpdate()->get();
             if ($products->count() !== count($cart)) {
