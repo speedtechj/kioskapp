@@ -119,3 +119,109 @@
     .promo-directory-row .promo-schedule { grid-column: 1 / -1; }
     .promo-directory-row > .btn { grid-column: 1 / -1; }
 }
+
+.promo-editor-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 9px;
+    margin-block: 0 12px;
+    color: #5c6255;
+    overflow-wrap: anywhere;
+}
+.promo-editor-breadcrumb a { color: #8f3515; font-weight: 700; }
+.promo-editor-heading { margin-bottom: 20px; }
+.promo-editor-redesign {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+    gap: 16px;
+    padding: 0;
+}
+.promo-editor-aside { display: grid; min-width: 0; gap: 14px; }
+.promo-editor-redesign .promo-editor-card {
+    display: grid;
+    min-width: 0;
+    gap: 12px;
+    padding: clamp(14px, 2vw, 22px);
+    border: 1px solid #e5dbc8;
+    border-radius: 14px;
+    background: #fffdf8;
+}
+.promo-editor-card h2 { margin: 0; font-size: 1.3rem; }
+.promo-editor-card p { margin: 0; }
+.promo-editor-card label { min-width: 0; font-weight: 650; }
+.promo-editor-card :is(input:not([type="checkbox"], [type="radio"], [type="hidden"]), select) { min-width: 0; width: 100%; min-height: 44px; }
+.promo-percent-field { position: relative; }
+.promo-percent-field input { padding-inline-end: 3rem; }
+.promo-percent-field > span { position: absolute; inset-inline-end: 1.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.promo-editor-redesign .promo-scope { padding: 0; border: 0; }
+.promo-scope legend { padding: 0; margin-bottom: 8px; font-weight: 650; }
+.promo-scope-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.promo-scope-options label { position: relative; display: block; }
+.promo-scope-options input, .promo-editor-switch input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+}
+.promo-scope-options span {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    padding: 5px;
+    border: 1px solid #ddd4c4;
+    text-align: center;
+    cursor: pointer;
+}
+.promo-scope-options label:first-child span { border-radius: 9px 0 0 9px; }
+.promo-scope-options label:last-child span { border-radius: 0 9px 9px 0; }
+.promo-scope-options input:checked + span { color: #fff; background: #963914; border-color: #963914; }
+.promo-scope-options input:focus-visible + span, .promo-editor-switch input:focus-visible + span {
+    outline: 2px solid #963914;
+    outline-offset: 3px;
+}
+.promo-editor-section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.promo-editor-section-heading h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.promo-editor-redesign .promo-selection-list { margin: 0; }
+.promo-editor-redesign .promo-selection-list li { flex-wrap: wrap; }
+.promo-editor-redesign .promo-selection-list li:last-child { border-bottom: 0; }
+.promo-editor-preview-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    color: #763013;
+    background: #fbe8d6;
+    border-radius: 10px;
+}
+.promo-editor-redesign .promo-editor-enable {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 54px;
+    padding: 12px 16px;
+    font-weight: 750;
+    cursor: pointer;
+}
+.promo-editor-switch { position: relative; display: inline-flex; }
+.promo-editor-switch > span { width: 46px; height: 26px; border-radius: 999px; background: #6d7268; padding: 3px; }
+.promo-editor-switch > span::before { content: ''; display: block; width: 20px; height: 20px; border-radius: 50%; background: #fff; }
+.promo-editor-switch input:checked + span { background: #963914; }
+.promo-editor-switch input:checked + span::before { transform: translateX(20px); }
+.promo-editor-save { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: end; gap: 10px; }
+.promo-editor-save > .btn { min-height: 44px; }
+
+@media (max-width: 900px) {
+    .promo-editor-redesign { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+    .promo-editor-save {
+        position: sticky;
+        bottom: var(--staff-nav-height, 0px);
+        z-index: 5;
+        padding-block: 10px;
+        border-top: 1px solid #e5dbc8;
+        background: #fffdf8;
+    }
+    .promo-editor-save > .primary { flex: 1; min-height: 48px; }
+}
