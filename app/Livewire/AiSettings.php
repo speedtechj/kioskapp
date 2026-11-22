@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ChecksBusinessAvailability;
 use App\Models\Business;
 use App\Models\BusinessAiSetting;
 use App\Models\Order;
@@ -18,7 +19,7 @@ use Livewire\Component;
 
 class AiSettings extends Component
 {
-    use \App\Livewire\Concerns\ChecksBusinessAvailability;
+    use ChecksBusinessAvailability;
 
     #[Locked]
     public int $businessId;
@@ -91,7 +92,7 @@ class AiSettings extends Component
         abort_unless(isset(config('gather-ai.helpers')[$helper]), 404);
         $path = "helpers.$helper";
         $this->validate([
-            "$path.provider" => ['nullable', Rule::in(array_keys(config('gather-ai.providers')))],
+            "$path.provider" => ['nullable', Rule::in($helper === 'customer' ? ['groq'] : array_keys(config('gather-ai.providers')))],
             "$path.enabled" => 'required|boolean',
         ]);
 

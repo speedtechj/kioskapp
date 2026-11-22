@@ -4,8 +4,10 @@
 <link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=local-menu-1' }}">
 <link rel="stylesheet" href="{{ asset('branding/ordering-guide.css') . '?v=menu-row-1' }}">
 <link rel="stylesheet" href="{{ asset('branding/menu-promotions.css').'?v=2' }}">
+<link rel="stylesheet" href="{{ asset('branding/ask-joy.css') }}">
 @endassets
-<main wire:poll.30s x-data="{ menuCategory: null, menuSearch: '' }" class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
+@php($askJoyEnabled = \App\Services\GatherAi::customerEnabled($kiosk->business_id))
+<main wire:poll.30s x-data="{ menuCategory: null, menuSearch: '' }" class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}{{ $askJoyEnabled ? ' ask-joy-menu' : '' }}">
 @if($detailId !== null && !$reviewOpen)
     <header class="takeout-review-header">
         <button type="button" class="icon-btn" wire:click="closeItem" aria-label="Back to menu"><x-g-icon name="chevron-left"/></button>
@@ -62,12 +64,7 @@
 
 <section class="takeout-welcome"><h1>Good food. To go<span class="brand-dot">.</span></h1><p>Scan. Order. Pick up. No login needed.</p></section>
 <section class="takeout-hero"><img src="{{ $products->first()?->image ?? '/images/bowl.jpg' }}" alt="Fresh food for pickup"><div><h2>Freshly made.<br>Ready for<br>pickup.</h2><span></span></div></section>
-<div class="takeout-menu-heading" x-data>
-    <h1 class="phone-menu-title">Menu</h1>
-    <button type="button" class="icon-btn ordering-guide-trigger" aria-label="Ordering guide / Gabay sa pag-order"
-        aria-haspopup="dialog" x-on:click="$refs.orderingGuide.showModal()">?</button>
-    @include('livewire.partials.ordering-guide')
-</div>
+@include('livewire.partials.customer-menu-heading', ['askJoyEnabled' => $askJoyEnabled, 'takeout' => true])
 <div class="phone-menu-controls">
     <x-menu-promo-banner :promotion="$promotion" :items="$promoItems" :phase="$promoPhase" :language="$language"/>
     <div role="group" aria-label="Menu categories" class="categories takeout-categories">

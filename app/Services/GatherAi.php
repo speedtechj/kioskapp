@@ -53,15 +53,35 @@ class GatherAi
     public function generate(int $businessId, string $helper, string $instruction, string $data): string
     {
         abort_unless(self::canManage(auth()->user(), $businessId), 403);
-        self::settings($businessId);
+        abort_if($helper === 'customer', 403);
 
+        return $this->complete($businessId, $helper, $instruction, $data);
+    }
+
+    public static function customerEnabled(int $businessId): bool
+    {
+        $settings = BusinessAiSetting::find($businessId);
+
+        return $settings?->enabled
+            && ($settings->helpers['customer']['enabled'] ?? false)
+            && ($settings->helpers['customer']['provider'] ?? null) === 'groq'
+            && ! empty($settings->credentials['groq']);
+    }
+
+    public function answerCustomer(int $businessId, string $instruction, string $data): string
+    {
+        return $this->complete($businessId, 'customer', $instruction, $data);
+    }
+
+    private function complete(int $businessId, string $helper, string $instruction, string $data): string
+    {
         [$id, $provider, $key, $rate] = DB::transaction(function () use ($businessId, $helper, $instruction, $data) {
             $settings = BusinessAiSetting::lockForUpdate()->findOrFail($businessId);
-            $helperSettings = $settings->helpers[$helper] ?? [];
+            $helperSettings = $settings?->helpers[$helper] ?? [];
             $provider = $helperSettings['provider'] ?? '';
             $key = $settings->credentials[$provider] ?? null;
             $rate = config('gather-ai.providers')[$provider] ?? null;
-            if (! $settings->enabled || ! ($helperSettings['enabled'] ?? false) || ! $key || ! $rate) {
+            if (! $settings?->enabled || ($helper === 'customer' && $provider !== 'groq') || ! ($helperSettings['enabled'] ?? false) || ! $key || ! $rate) {
                 throw ValidationException::withMessages(['ai' => 'Enable this helper and connect its provider in AI Settings.']);
             }
 

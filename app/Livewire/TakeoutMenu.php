@@ -2,13 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\AnswersCustomerQuestions;
 use App\Livewire\Concerns\ChecksBusinessAvailability;
 use App\Livewire\Concerns\SelectsToppings;
 use App\Models\Business;
 use App\Models\Kiosk;
+use App\Models\MenuPromotion;
 use App\Models\Order;
 use App\Services\PlaceOrder;
-use App\Models\MenuPromotion;
 use App\Services\RegisterShifts;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
@@ -17,8 +18,14 @@ use Livewire\Component;
 
 class TakeoutMenu extends Component
 {
+    use AnswersCustomerQuestions;
     use ChecksBusinessAvailability;
     use SelectsToppings;
+
+    protected function assistantKiosk(): Kiosk
+    {
+        return $this->kiosk();
+    }
 
     #[Locked]
     public ?int $quotedPromo = null;

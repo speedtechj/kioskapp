@@ -85,13 +85,14 @@
                             <select wire:model="helpers.{{ $id }}.provider">
                                 <option value="">Choose provider</option>
                                 @foreach($providers as $key => $details)
+                                    @continue($id === 'customer' && $key !== 'groq')
                                     <option value="{{ $key }}">{{ $details['label'] }} · {{ $details['model'] }}</option>
                                 @endforeach
                             </select>
                         </label>
                         <div><span>Requests</span><strong>{{ number_format($usage[$id]->requests ?? 0) }}</strong></div>
                         <div><span>Est. cost (USD)</span><strong>${{ number_format(($usage[$id]->cost ?? 0) / 1000000, 2) }}</strong></div>
-                        <label class="ai-check"><input type="checkbox" wire:model="helpers.{{ $id }}.enabled"> Enabled</label>
+                        <label class="ai-check"><input type="checkbox" wire:model="helpers.{{ $id }}.enabled"> {{ $id === 'customer' ? 'Enable customer AI assistant' : 'Enabled' }}</label>
                         <button class="btn" type="submit" wire:loading.attr="disabled">Save</button>
                     </form>
                 @endforeach

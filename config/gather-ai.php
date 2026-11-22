@@ -8,7 +8,7 @@ return [
         'groq' => ['label' => 'Groq', 'model' => 'openai/gpt-oss-20b', 'input' => 0.075, 'output' => 0.30],
         'gemini' => ['label' => 'Google · Gemini', 'model' => 'gemini-2.5-flash-lite', 'input' => 0.10, 'output' => 0.40],
     ],
-    'helpers' => ['menu' => 'Menu Writing Assistant', 'brief' => 'AI Daily Brief', 'ask' => 'Ask Gather'],
+    'helpers' => ['menu' => 'Menu Writing Assistant', 'brief' => 'AI Daily Brief', 'ask' => 'Ask Gather', 'customer' => 'Ask Joy · Customer app'],
     'languages' => [
         'en' => 'English', 'fil' => 'Filipino', 'ceb' => 'Cebuano', 'fr' => 'French',
         'es' => 'Spanish', 'ja' => 'Japanese', 'ko' => 'Korean', 'zh-Hans' => 'Simplified Chinese',

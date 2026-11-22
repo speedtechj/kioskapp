@@ -2,11 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\AnswersCustomerQuestions;
+use App\Livewire\Concerns\ChecksBusinessAvailability;
+use App\Livewire\Concerns\SelectsToppings;
 use App\Models\Business;
 use App\Models\DiningTable;
 use App\Models\Kiosk;
-use App\Services\PlaceOrder;
 use App\Models\MenuPromotion;
+use App\Services\GatherAi;
+use App\Services\PlaceOrder;
 use App\Services\RegisterShifts;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
@@ -14,8 +18,14 @@ use Livewire\Component;
 
 class CustomerMenu extends Component
 {
-    use \App\Livewire\Concerns\SelectsToppings;
-    use \App\Livewire\Concerns\ChecksBusinessAvailability;
+    use AnswersCustomerQuestions;
+    use ChecksBusinessAvailability;
+    use SelectsToppings;
+
+    protected function assistantKiosk(): Kiosk
+    {
+        return $this->table()->kiosk;
+    }
 
     #[Locked]
     public ?int $quotedPromo = null;
@@ -58,6 +68,15 @@ class CustomerMenu extends Component
         return $this->table()->kiosk->business_id;
     }
 
+    public function revealAssistantItem(int $id): void
+    {
+        $kiosk = $this->assistantKiosk();
+        abort_unless(GatherAi::customerEnabled($kiosk->business_id), 404);
+        $kiosk->visibleProducts()->where('products.business_id', $kiosk->business_id)->where('products.active', true)->findOrFail($id);
+        $this->search = '';
+        $this->category = 'All';
+    }
+
     public function add(int $id): void
     {
         $table = $this->table();
@@ -92,7 +111,7 @@ class CustomerMenu extends Component
         $this->redirectRoute('tracking', ['token' => $order->slug]);
     }
 
-    public string $menuLanguage = "";
+    public string $menuLanguage = '';
 
     public function render()
     {
