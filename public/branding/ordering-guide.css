@@ -1,0 +1,133 @@
+.takeout-header .ordering-guide-trigger {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    margin-inline-start: auto;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    font-weight: 750;
+}
+
+.ordering-guide {
+    box-sizing: border-box;
+    width: min(100% - 20px, 540px);
+    max-height: 90vh;
+    max-height: 90dvh;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #e2d5bc;
+    border-radius: 20px;
+    background: #fff9ee;
+    color: #292b16;
+    overflow: auto;
+    overscroll-behavior: contain;
+    text-align: start;
+}
+
+.ordering-guide::backdrop {
+    background: #25251499;
+}
+
+.ordering-guide-top {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    color: white;
+    background: #3c421b;
+}
+
+.ordering-guide-top h2 {
+    color: inherit;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.ordering-guide-top .icon-btn {
+    width: 44px;
+    height: 44px;
+    color: #292b16;
+    background: #fff9ee;
+    font-size: 1.5rem;
+}
+
+.ordering-guide ol {
+    padding: 0 16px;
+    list-style: none;
+    counter-reset: guide-step;
+}
+
+.ordering-guide li {
+    counter-increment: guide-step;
+    border-bottom: 1px solid #e2d5bc;
+    padding: 16px 0;
+}
+
+.ordering-guide li h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+}
+
+.ordering-guide li h3::before {
+    content: counter(guide-step);
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #ede5bd;
+    font-weight: 750;
+}
+
+.ordering-guide li p {
+    margin: 6px 0;
+}
+
+.ordering-guide-example {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    background: #f5ebd7;
+    border-radius: 12px;
+}
+
+.ordering-guide-example img {
+    border-radius: 8px;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+}
+
+.ordering-guide-action {
+    background: #b44708;
+    color: white;
+    border-radius: 999px;
+    padding: 8px 12px;
+}
+
+.ordering-guide-list {
+    display: grid;
+}
+
+.ordering-guide-list div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: space-between;
+}
+
+.ordering-guide-bottom {
+    padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+}
+
+.ordering-guide-bottom .btn {
+    min-height: 44px;
+}
