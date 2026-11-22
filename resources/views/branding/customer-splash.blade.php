@@ -43,8 +43,6 @@
         animation-delay: 45ms;
     }
 
-    .customer-splash.is-ready { animation: customer-splash-finish 120ms ease-out both; }
-
     @keyframes customer-splash-exit {
         0%, 68% { opacity: 1; }
         to { opacity: 0; visibility: hidden; }
@@ -59,10 +57,6 @@
         from { opacity: 0; transform: translateY(8px) rotate(12deg); }
         45% { opacity: .85; }
         to { opacity: 0; transform: translateY(-8px) rotate(-12deg); }
-    }
-
-    @keyframes customer-splash-finish {
-        to { opacity: 0; visibility: hidden; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -80,20 +74,23 @@
 <script>
     (() => {
         const splash = document.querySelector('[data-customer-splash]');
-        const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-        const mobile = window.matchMedia('(pointer: coarse)').matches;
+        const preview = new URLSearchParams(window.location.search).get('splash') === 'preview';
+        const standalone = window.matchMedia('(display-mode: standalone)').matches
+            || window.matchMedia('(display-mode: fullscreen)').matches
+            || navigator.standalone === true;
 
-        if (!standalone || !mobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-            || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
-            return;
-        }
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        const key = 'customer-splash:' + splash.dataset.kiosk;
-        try {
-            if (sessionStorage.getItem(key)) return;
-            sessionStorage.setItem(key, 'shown');
-        } catch {
-            return;
+        if (!preview) {
+            if (!standalone || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') return;
+
+            const key = 'customer-splash:v2:' + splash.dataset.kiosk;
+            try {
+                if (sessionStorage.getItem(key)) return;
+                sessionStorage.setItem(key, 'shown');
+            } catch {
+                return;
+            }
         }
 
         const icon = splash.querySelector('img');
@@ -101,9 +98,6 @@
         splash.addEventListener('animationend', event => {
             if (event.target === splash) splash.remove();
         });
-        document.addEventListener('DOMContentLoaded', () => {
-            splash.classList.add('is-ready');
-        }, { once: true });
         window.addEventListener('pagehide', () => splash.remove(), { once: true });
         splash.hidden = false;
     })();
