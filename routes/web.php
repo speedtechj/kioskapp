@@ -3,6 +3,7 @@
 use App\Http\Controllers\AiProviderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashierPwaController;
+use App\Http\Controllers\MenuPromotionController;
 use App\Http\Controllers\SlugLinksController;
 use App\Http\Controllers\StaffPinController;
 use App\Http\Middleware\CanonicalOrderSlug;
@@ -45,8 +46,14 @@ Route::middleware('auth')->group(function () {
         Route::get($path, [SlugLinksController::class, 'legacy'])->whereNumber(['businessId', 'kioskId', 'orderId', 'tableId'])->defaults('destination', $name);
     }
     Route::middleware(CanonicalSlugUrl::class)->scopeBindings()->group(function () {
-        Route::get('/business/{business}/promos', [\App\Http\Controllers\MenuPromotionController::class, 'edit'])->name('promotions.edit');
-        Route::put('/business/{business}/promos', [\App\Http\Controllers\MenuPromotionController::class, 'save'])->name('promotions.save');
+        Route::get('/business/{business}/promos', [MenuPromotionController::class, 'index'])->name('promotions.edit');
+        Route::put('/business/{business}/promos', [MenuPromotionController::class, 'save'])->name('promotions.save');
+        Route::get('/business/{business}/promos/create', [MenuPromotionController::class, 'create'])->name('promotions.create');
+        Route::post('/business/{business}/promos', [MenuPromotionController::class, 'store'])->name('promotions.store');
+        Route::get('/business/{business}/promos/{promotion}', [MenuPromotionController::class, 'show'])->whereNumber('promotion')->name('promotions.show');
+        Route::get('/business/{business}/promos/{promotion}/edit', [MenuPromotionController::class, 'edit'])->whereNumber('promotion')->name('promotions.configure');
+        Route::put('/business/{business}/promos/{promotion}', [MenuPromotionController::class, 'update'])->whereNumber('promotion')->name('promotions.update');
+        Route::delete('/business/{business}/promos/{promotion}', [MenuPromotionController::class, 'destroy'])->whereNumber('promotion')->name('promotions.destroy');
         Route::get('/business/{business}/admin', Workspace::class)->name('workspace');
         Route::get('/business/{business}/reports/sales', \App\Http\Controllers\SalesSummaryController::class)->name('reports.sales');
         Route::get('/business/{business}/audit', \App\Http\Controllers\AuditTrailController::class)->name('audit.trail');

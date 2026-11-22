@@ -22,12 +22,23 @@ class MenuPromotion extends Model
         $now = now();
 
         return self::where('business_id', $businessId)->where('enabled', true)
-            ->where('announces_at', '<=', $now)->where('ends_at', '>', $now)->first();
+            ->where('announces_at', '<=', $now)->where('ends_at', '>', $now)
+            ->orderByRaw('CASE WHEN starts_at <= ? THEN 0 ELSE 1 END', [$now])
+            ->orderBy('starts_at')->orderBy('id')->first();
     }
 
     public function phase(): string
     {
         return now()->lt($this->starts_at) ? 'upcoming' : 'active';
+    }
+
+    public function status(): string
+    {
+        return match (true) {
+            ! $this->enabled => 'disabled',
+            now()->gte($this->ends_at) => 'ended',
+            default => $this->phase(),
+        };
     }
 
     public function eligible(Product $product): bool
