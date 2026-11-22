@@ -22,7 +22,7 @@ class Access
             }
         }
         if ($permission === 'promotions.manage') {
-            return in_array(self::membership($user, $businessId)?->pivot->role, ['admin', 'manager'], true);
+            return in_array(self::membership($user, $businessId)?->pivot->role, ['owner', 'admin', 'manager'], true);
         }
         if ($user->is_super_admin) {
             return true;
