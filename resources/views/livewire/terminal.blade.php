@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ asset('branding/register-shift.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/pos-adjustments.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/pos-checkout-layout.css') }}">
-<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css').'?v=2' }}">
 @endassets
 <div class="app-shell" x-data="{navOpen:false,cartOpen:false,payStep:false}"><x-sidebar :business="$business" :kiosk="$kiosk" mode="pos"/><main class="main terminal-main cashier-roomy-pos"><header class="topbar"><div class="heading-row"><button class="mobile-only icon-btn" @click="navOpen=true" aria-label="Open navigation"><x-g-icon name="bars-3"/></button><div><span class="eyebrow">SELL SOMETHING GOOD</span><h1>Point of sale<span class="brand-dot">.</span></h1></div></div><div class="topbar-actions"><button class="btn small" wire:poll.10s wire:click="$set('incomingOpen',true)">Incoming orders · {{ $incoming->count() }}</button><span class="branch-chip desktop-branch"><span class="tiny-dot"></span>{{ $kiosk->name }}</span>
 <label class="staff-branch">Kiosk<select @change="window.location.assign($event.target.value)">

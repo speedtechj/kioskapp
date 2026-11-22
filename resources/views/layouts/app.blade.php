@@ -1,5 +1,5 @@
 @php
-    $staffApp = request()->routeIs('login', 'home', 'workspace', 'reports.sales', 'business.settings', 'business.ai', 'audit.trail', 'pos', 'kitchen', 'payments', 'kiosk.brand');
+    $staffApp = request()->routeIs('login', 'home', 'workspace', 'reports.sales', 'business.settings', 'business.ai', 'audit.trail', 'promotions.edit', 'pos', 'kitchen', 'payments', 'kiosk.brand');
     $cashierKiosk = request()->routeIs('pos', 'payments', 'cashier.sign-in', 'cashier.pin.edit') ? request()->route('kiosk') : null;
     $cashierKiosk = $cashierKiosk instanceof \App\Models\Kiosk ? $cashierKiosk : null;
     $brandKiosk = in_array(request()->route()?->getName(), ['menu','takeout'], true) ? request()->route('kiosk') : null;

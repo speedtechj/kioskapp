@@ -50,7 +50,7 @@
 @endif
 @endforeach
 @if(\App\Services\Access::allows(auth()->user(), $business->id, 'promotions.manage'))
-    <a href="{{ route('promotions.edit', $business) }}" class="nav-item {{ $mode === 'promotions' ? 'active' : '' }}" @if($mode === 'promotions') aria-current="page" @endif>Promos</a>
+    <a href="{{ route('promotions.edit', $business) }}" class="nav-item {{ $mode === 'promotions' ? 'active' : '' }}" @if($mode === 'promotions') aria-current="page" @endif><x-g-icon name="tag"/>Promos</a>
 @endif
 @if(\App\Services\BusinessAudit::canView(auth()->user(), $business->id))
     <a href="{{ route('audit.trail', $business) }}" class="nav-item {{ $mode === 'audit' ? 'active' : '' }}" @if($mode === 'audit') aria-current="page" @endif>

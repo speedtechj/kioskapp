@@ -17,20 +17,18 @@
             <p><strong>{{ $headline }}</strong></p>
             <p>{{ $schedule }}</p>
             @unless($active)<p>Ends {{ $promotion->ends_at->format('D, M j \a\t g:i A') }}. Discount applies when the promo starts.</p>@endunless
-            <table>
-                <thead><tr><th scope="col">Item</th><th scope="col">Regular</th><th scope="col">Save</th><th scope="col">{{ $active ? 'Now' : 'Promo price' }}</th></tr></thead>
-                <tbody>
-                    @foreach($items as $item)
-                        @php($saving = $promotion->unitSaving($item->price))
-                        <tr>
-                            <th scope="row">{{ $item->menuText('name', $attributes->get('language', '')) }}</th>
-                            <td>₱{{ number_format($item->price / 100, 2) }}</td>
-                            <td>₱{{ number_format($saving / 100, 2) }}</td>
-                            <td><strong>₱{{ number_format(($item->price - $saving) / 100, 2) }}</strong></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <h3>Eligible items ({{ $items->count() }})</h3>
+            <ul class="menu-promo-items">
+                @foreach($items as $item)
+                    @php($saving = $promotion->unitSaving($item->price))
+                    <li class="menu-promo-item">
+                        <strong>{{ $item->menuText('name', $attributes->get('language', '')) }}</strong>
+                        <div>Regular <span>₱{{ number_format($item->price / 100, 2) }}</span></div>
+                        <div class="menu-promo-saving">Save <span>₱{{ number_format($saving / 100, 2) }}</span></div>
+                        <div class="menu-promo-final">{{ $active ? 'Now' : 'Promo price' }} <span>₱{{ number_format(($item->price - $saving) / 100, 2) }}</span></div>
+                    </li>
+                @endforeach
+            </ul>
             @if($active)<p>Applied automatically at checkout.</p>@endif
             <form method="dialog"><button class="btn wide">Back to menu</button></form>
         </dialog>

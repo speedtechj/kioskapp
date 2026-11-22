@@ -33,10 +33,14 @@
 
 .menu-promo-dialog::backdrop { background: #24241f88; }
 .menu-promo-close { float: right; }
-.menu-promo-dialog table { width: 100%; border-collapse: collapse; margin-block: 12px; font-size: .875rem; }
-.menu-promo-dialog th, .menu-promo-dialog td { padding: 8px 4px; border-bottom: 1px solid #e5dbc8; text-align: left; }
-.menu-promo-dialog td { white-space: nowrap; }
-.menu-promo-dialog td:last-child { color: #25471d; }
+.menu-promo-dialog { box-sizing: border-box; max-height: 85vh; max-height: 85dvh; font-size: 1rem; }
+.menu-promo-dialog .icon-btn { width: 44px; height: 44px; }
+.menu-promo-items { display: grid; gap: 10px; list-style: none; margin: 12px 0; padding: 0; }
+.menu-promo-item { display: grid; gap: 5px; padding: 12px; border: 1px solid #e5dbc8; border-radius: 12px; overflow-wrap: anywhere; }
+.menu-promo-item > strong { font-size: 1.125rem; }
+.menu-promo-saving { color: #25471d; }
+.menu-promo-final { margin-top: 3px; padding: 6px 10px; border-radius: 8px; background: #e0efce; color: #25471d; font-size: 1.25rem; font-weight: 750; }
+
 .menu-promo-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
 .takeout-photo-card > .menu-promo-price { padding: 0 10px 10px; }
 .menu-promo-price del { color: #666951; }
@@ -48,11 +52,18 @@
 .promo-editor-fields { gap: 14px; }
 .promo-editor fieldset { min-width: 0; padding: 12px; border: 1px solid #e5dbc8; border-radius: 10px; }
 .promo-editor .promo-checkbox { display: flex; align-items: center; gap: 8px; padding-block: 4px; }
-.promo-checkbox input { width: auto; }
+.promo-checkbox input[type="checkbox"] { flex: 0 0 auto; width: 20px; height: 20px; }
+.promo-item-label { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.promo-editor fieldset .promo-checkbox { min-height: 48px; }
+.promo-editor fieldset .promo-checkbox + .promo-checkbox { border-top: 1px solid #e5dbc8; }
 .promo-price-preview { align-self: start; background: #ffebc5; padding: 16px; border-radius: 12px; }
 
 @media (max-width: 760px) {
-    .promo-editor { grid-template-columns: 1fr; }
+    .promo-editor { grid-template-columns: minmax(0, 1fr); padding: 14px; font-size: 1.0625rem; }
+    .promo-editor :is(input:not([type="checkbox"], [type="hidden"]), select) { min-width: 0; width: 100%; min-height: 44px; font-size: 1rem; }
+    .promo-editor-fields > .btn { width: 100%; min-height: 48px; }
+    .menu-promo-dialog { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+    .menu-promo-dialog .btn { min-height: 44px; }
     .phone-menu-controls .menu-promo-banner { order: -1; margin: 0; }
     body .customer-app.customer-app .phone-menu-controls .search { order: -2; }
 }

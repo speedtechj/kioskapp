@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="{{ asset('branding/takeout-checkout.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=local-menu-1' }}">
 <link rel="stylesheet" href="{{ asset('branding/ordering-guide.css') . '?v=menu-row-1' }}">
-<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css').'?v=2' }}">
 @endassets
 <main wire:poll.30s x-data="{ menuCategory: null, menuSearch: '' }" class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
 @if($detailId !== null && !$reviewOpen)

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css').'?v=2' }}">
 <div class="app-shell" x-data="{ navOpen: false }">
     <x-sidebar :business="$business" mode="promotions"/>
     <main class="main">
@@ -33,7 +33,10 @@
                             <input type="checkbox" name="product_ids[]" value="{{ $product->id }}"
                                 @checked(in_array((string) $product->id, array_map('strval', old('product_ids', $promotion?->product_ids ?? [])), true))
                                 x-on:change="example = $event.target.checked ? {{ (int) $product->price }} : null">
-                            {{ $product->name }} · ₱{{ number_format($product->price / 100, 2) }}
+                            <span class="promo-item-label">
+                                <strong>{{ $product->name }}</strong>
+                                <span class="muted">₱{{ number_format($product->price / 100, 2) }}</span>
+                            </span>
                         </label>
                     @endforeach
                 </fieldset>

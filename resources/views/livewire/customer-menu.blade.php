@@ -1,6 +1,6 @@
 @assets
 <link rel="stylesheet" href="{{ asset('branding/customer-ordering-hours.css') }}">
-<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css').'?v=2' }}">
 @endassets
 <main wire:poll.15s class="customer-app"><header class="customer-header"><span class="brand"><img src="{{ $table->kiosk->logoUrl() }}" width="32" height="32" alt="" style="display:inline-block;object-fit:contain;border-radius:6px;margin-right:6px">{{ $table->kiosk->business->name }}</span><span class="table-tag"><x-g-icon name="table-cells"/>{{ $table->name }} · Dine-in</span></header>
 @include('livewire.partials.ordering-closed')
