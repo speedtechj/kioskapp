@@ -129,7 +129,7 @@ class TakeoutMenu extends Component
 
     public function showCheckout(): void
     {
-        if ($this->cart && RegisterShifts::active($this->kiosk()->id)) {
+        if ($this->cart) {
             $this->reviewOpen = true;
             $this->checkoutOpen = true;
             $this->scrollToTop();
@@ -140,6 +140,12 @@ class TakeoutMenu extends Component
     {
         $this->checkoutOpen = false;
         $this->scrollToTop();
+    }
+
+    public function backToMenu(): void
+    {
+        $this->reviewOpen = false;
+        $this->closeCheckout();
     }
 
     public function add(int $id, int $count = 1): bool

@@ -1,7 +1,7 @@
 @assets
 <link rel="stylesheet" href="{{ asset('branding/customer-ordering-hours.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/takeout-checkout.css') }}">
-<link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=checkout-menu-1' }}">
 @endassets
 <main wire:poll.15s class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
 @if($detailId !== null && !$reviewOpen)
@@ -88,7 +88,7 @@
     <div class="takeout-floating-cart" x-data="{ added: false, timer: null }"
         x-on:takeout-item-added.window="added = true; clearTimeout(timer); timer = setTimeout(() => added = false, 1800)">
         <span class="takeout-cart-feedback" role="status" x-text="added ? 'Added to cart' : ''"></span>
-        <button type="button" class="btn primary" wire:click="$set('reviewOpen',true)">
+        <button type="button" class="btn primary" wire:click="showCheckout">
             <x-g-icon name="shopping-bag"/>
             View cart · {{ array_sum($cart) }} {{ \Illuminate\Support\Str::plural('item', array_sum($cart)) }}
         </button>
@@ -96,11 +96,11 @@
 @endif
 @else
     <header class="takeout-review-header">
-        <button type="button" class="icon-btn" @if($checkoutOpen) wire:click="closeCheckout" aria-label="Back to cart"
-            @else wire:click="$set('reviewOpen',false)" aria-label="Back to takeout menu" @endif>
+        <button type="button" class="icon-btn" wire:click="backToMenu"
+            wire:loading.attr="disabled" wire:target="submit" aria-label="Back to menu">
             <x-g-icon name="chevron-left"/>
         </button>
-        <h1>{{ $checkoutOpen ? 'Checkout' : 'Your cart' }}</h1>
+        <h1>{{ $checkoutOpen ? 'Your takeout order' : 'Your cart' }}</h1>
     </header>
 
     @include('livewire.partials.ordering-closed')
@@ -117,7 +117,6 @@
             </section>
             @endif
 
-            @unless($checkoutOpen)
             <div class="takeout-review-items">
                 @forelse($cartProducts as $product)
                     <article class="cart-item" wire:key="takeout-cart-{{ $product->id }}">
@@ -139,25 +138,18 @@
             </div>
 
             @include('livewire.partials.topping-picker', ['canIncrease' => $orderingOpen])
-            @else
-
+            @if($checkoutOpen)
             <label>Name for pickup <span class="muted">(optional)</span>
                 <input wire:model="name" maxlength="80" autocomplete="given-name" placeholder="What should we call you?">
             </label>
             <label>Order notes <span class="muted">(optional)</span>
                 <textarea wire:model="notes" maxlength="500" placeholder="e.g. less ice, no onions, etc."></textarea>
             </label>
-            @endunless
+            @endif
         </div>
 
         <section class="takeout-totals" aria-label="Order totals">
             @if($checkoutOpen)
-                @foreach($cartProducts as $product)
-                    <div class="total-row">
-                        <span>{{ $product->menuText('name', $language) }} × {{ $cart[$product->id] }}</span>
-                        <span>₱{{ number_format($product->price * $cart[$product->id] / 100, 2) }}</span>
-                    </div>
-                @endforeach
                 @foreach($toppings as $topping)
                     @if($topping->active && ($quantity = $toppingQuantities[$topping->id] ?? 0))
                         <div class="total-row">
@@ -183,6 +175,12 @@
 
     <footer class="takeout-submit">
         @if($checkoutOpen)
+        <div class="takeout-back-to-menu">
+            <button type="button" class="btn wide" wire:click="backToMenu" wire:loading.attr="disabled" wire:target="submit">
+                <x-g-icon name="chevron-left"/> Back to menu
+            </button>
+            <p>Your cart will be saved</p>
+        </div>
         <button type="button" class="btn primary wide" wire:click="submit" wire:loading.attr="disabled" wire:target="submit" @disabled(! $orderingOpen || ! $cart)>
             <span wire:loading.remove wire:target="submit">Place order · Pay at counter</span>
             <span wire:loading.inline wire:target="submit" style="display: none">Sending your order…</span>

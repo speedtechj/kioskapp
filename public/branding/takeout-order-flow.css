@@ -107,3 +107,18 @@
 .takeout-catalog:has(.takeout-floating-cart) {
     padding-bottom: calc(100px + env(safe-area-inset-bottom));
 }
+
+.takeout-back-to-menu {
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.takeout-back-to-menu .btn {
+    min-height: 48px;
+    border: 1px solid currentColor;
+    color: #a84108;
+}
+
+.takeout-back-to-menu p {
+    margin: 6px 0 0;
+}
