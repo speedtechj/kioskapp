@@ -42,7 +42,10 @@
         });
     });
 </script>
-</head><body class="gather-type">{{ $slot ?? '' }}@yield('content')@livewireScripts<x-confirm-dialog/><script defer src="{{ asset('gather-dialogs-v1.js') }}"></script>
+</head><body class="gather-type">@if($brandKiosk && !request()->boolean('browse'))
+@include('branding.customer-splash', ['kiosk' => $brandKiosk])
+@endif
+{{ $slot ?? '' }}@yield('content')@livewireScripts<x-confirm-dialog/><script defer src="{{ asset('gather-dialogs-v1.js') }}"></script>
 @if($brandKiosk)
 @include('branding.install',['kiosk'=>$brandKiosk])
 @endif
