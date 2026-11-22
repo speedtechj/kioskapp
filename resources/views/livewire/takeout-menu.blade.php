@@ -69,11 +69,11 @@
 <div class="customer-products takeout-photo-grid">
     @forelse($products as $product)
         <article class="takeout-photo-card" wire:key="takeout-product-{{ $product->id }}">
-            <div class="takeout-photo">
+            <button type="button" class="takeout-photo" wire:click="showItem({{ $product->id }})"
+                aria-label="View {{ $product->menuText('name', $language) }}">
                 <img src="{{ $product->image }}" alt="">
-                <button type="button" class="btn primary" wire:click="showItem({{ $product->id }})"
-                    aria-label="View {{ $product->menuText('name', $language) }}">+</button>
-            </div>
+                <span class="btn primary" aria-hidden="true">+</span>
+            </button>
             <h3>{{ $product->menuText('name', $language) }}</h3>
             <strong>₱{{ number_format($product->price / 100, 2) }}</strong>
             @if($product->pivot->stock < 1)<small>Sold out</small>@endif

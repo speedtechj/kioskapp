@@ -10,7 +10,19 @@
     border-radius: 14px;
     background: #fff7ea;
 }
-.takeout-photo { position: relative; }
+.takeout-photo {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.takeout-photo:focus-visible {
+    outline: 3px solid #a84108;
+    outline-offset: -3px;
+}
 .takeout-photo img {
     display: block;
     width: 100%;
