@@ -79,3 +79,31 @@
         background: var(--paper);
     }
 }
+
+.takeout-floating-cart {
+    position: fixed;
+    z-index: 5;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100% - 32px);
+}
+.takeout-floating-cart .btn {
+    min-height: 48px;
+    border-radius: 999px;
+    padding-inline: 18px;
+    box-shadow: 0 4px 14px #3d190b40;
+}
+.takeout-cart-feedback:not(:empty) {
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #fff2df;
+    color: #48220f;
+}
+.takeout-catalog:has(.takeout-floating-cart) {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+}

@@ -70,9 +70,9 @@
     @forelse($products as $product)
         <article class="takeout-photo-card" wire:key="takeout-product-{{ $product->id }}">
             <button type="button" class="takeout-photo" wire:click="showItem({{ $product->id }})"
-                aria-label="View {{ $product->menuText('name', $language) }}">
+                aria-label="View {{ $product->menuText('name', $language) }}{{ isset($cart[$product->id]) ? ', '.$cart[$product->id].' in cart' : '' }}">
                 <img src="{{ $product->image }}" alt="">
-                <span class="btn primary" aria-hidden="true">+</span>
+                <span class="btn primary" aria-hidden="true">{{ $cart[$product->id] ?? '+' }}</span>
             </button>
             <h3>{{ $product->menuText('name', $language) }}</h3>
             <strong>₱{{ number_format($product->price / 100, 2) }}</strong>
@@ -84,7 +84,16 @@
 </div>
 @error('cart')<p class="error" role="alert">{{ $message }}</p>@enderror
 <footer class="customer-footer"><x-g-icon name="heart"/>Fresh food. Your own pace. Gather.</footer>
-<div class="basket-bar"><button class="btn primary wide" wire:click="$set('reviewOpen',true)" @disabled(! $orderingOpen || ! $cart)>@if(! $orderingOpen) Place order @else<strong>View basket · {{ array_sum($cart) }} {{ \Illuminate\Support\Str::plural('item', array_sum($cart)) }}</strong><strong>₱{{ number_format(($subtotal+$fee)/100,2) }}</strong>@endif</button></div>
+@if($cart)
+    <div class="takeout-floating-cart" x-data="{ added: false, timer: null }"
+        x-on:takeout-item-added.window="added = true; clearTimeout(timer); timer = setTimeout(() => added = false, 1800)">
+        <span class="takeout-cart-feedback" role="status" x-text="added ? 'Added to cart' : ''"></span>
+        <button type="button" class="btn primary" wire:click="$set('reviewOpen',true)">
+            <x-g-icon name="shopping-bag"/>
+            View cart · {{ array_sum($cart) }} {{ \Illuminate\Support\Str::plural('item', array_sum($cart)) }}
+        </button>
+    </div>
+@endif
 @else
     <header class="takeout-review-header">
         <button type="button" class="icon-btn" @if($checkoutOpen) wire:click="closeCheckout" aria-label="Back to cart"

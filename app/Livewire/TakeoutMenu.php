@@ -123,7 +123,7 @@ class TakeoutMenu extends Component
     {
         if ($this->detailId !== null && $this->add($this->detailId, $this->detailQuantity)) {
             $this->closeItem();
-            $this->reviewOpen = true;
+            $this->dispatch('takeout-item-added');
         }
     }
 
