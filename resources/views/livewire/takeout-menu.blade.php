@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="{{ asset('branding/customer-ordering-hours.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/takeout-checkout.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=checkout-menu-1' }}">
-<link rel="stylesheet" href="{{ asset('branding/ordering-guide.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/ordering-guide.css') . '?v=menu-row-1' }}">
 @endassets
 <main wire:poll.15s class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
 @if($detailId !== null && !$reviewOpen)
@@ -38,11 +38,7 @@
         <p class="empty">This item is no longer available.</p>
     @endif
 @elseif(!$reviewOpen)
-<header class="takeout-header" x-data><a href="{{ route('takeout',[$kiosk->business,$kiosk]) }}" class="takeout-logo"><img src="{{ $kiosk->logoUrl() }}" width="32" height="32" alt="" style="display:inline-block;object-fit:contain;border-radius:6px;margin-right:6px">{{ $kiosk->business->name==='Gather Restaurant'?'Gather':$kiosk->business->name }}<span class="brand-dot">.</span></a><span class="takeout-location"><x-g-icon name="map-pin"/>{{ $kiosk->name }}</span><span class="takeout-badge">Takeout</span>
-    <button type="button" class="icon-btn ordering-guide-trigger" aria-label="Ordering guide / Gabay sa pag-order"
-        aria-haspopup="dialog" x-on:click="$refs.orderingGuide.showModal()">?</button>
-    @include('livewire.partials.ordering-guide')
-</header>
+<header class="takeout-header"><a href="{{ route('takeout',[$kiosk->business,$kiosk]) }}" class="takeout-logo"><img src="{{ $kiosk->logoUrl() }}" width="32" height="32" alt="" style="display:inline-block;object-fit:contain;border-radius:6px;margin-right:6px">{{ $kiosk->business->name==='Gather Restaurant'?'Gather':$kiosk->business->name }}<span class="brand-dot">.</span></a><span class="takeout-location"><x-g-icon name="map-pin"/>{{ $kiosk->name }}</span><span class="takeout-badge">Takeout</span></header>
 @if($activeOrder)
     <section class="pickup-info" style="background: var(--soft-orange); flex-wrap: wrap">
         <x-g-icon name="shopping-bag"/>
@@ -65,7 +61,13 @@
 
 <section class="takeout-welcome"><h1>Good food. To go<span class="brand-dot">.</span></h1><p>Scan. Order. Pick up. No login needed.</p></section>
 <section class="takeout-hero"><img src="{{ $products->first()?->image ?? '/images/bowl.jpg' }}" alt="Fresh food for pickup"><div><h2>Freshly made.<br>Ready for<br>pickup.</h2><span></span></div></section>
-<h1 class="phone-menu-title">Menu</h1><div class="phone-menu-controls"><div role="group" aria-label="Menu categories" class="categories takeout-categories"><button class="chip {{ $category==='All'?'selected':'' }}" type="button" aria-pressed="{{ $category === 'All' ? 'true' : 'false' }}" wire:click="$set('category','All')">All</button>@foreach($categories as $c)<button class="chip {{ $category===$c?'selected':'' }}" type="button" aria-pressed="{{ $category === $c ? 'true' : 'false' }}" wire:click="$set('category',{{ Js::from($c) }})">{{ $c }}</button>@endforeach</div>
+<div class="takeout-menu-heading" x-data>
+    <h1 class="phone-menu-title">Menu</h1>
+    <button type="button" class="icon-btn ordering-guide-trigger" aria-label="Ordering guide / Gabay sa pag-order"
+        aria-haspopup="dialog" x-on:click="$refs.orderingGuide.showModal()">?</button>
+    @include('livewire.partials.ordering-guide')
+</div>
+<div class="phone-menu-controls"><div role="group" aria-label="Menu categories" class="categories takeout-categories"><button class="chip {{ $category==='All'?'selected':'' }}" type="button" aria-pressed="{{ $category === 'All' ? 'true' : 'false' }}" wire:click="$set('category','All')">All</button>@foreach($categories as $c)<button class="chip {{ $category===$c?'selected':'' }}" type="button" aria-pressed="{{ $category === $c ? 'true' : 'false' }}" wire:click="$set('category',{{ Js::from($c) }})">{{ $c }}</button>@endforeach</div>
 <div class="search"><x-g-icon name="magnifying-glass"/><input wire:model.live.debounce.200ms="search" aria-label="Search takeout menu" placeholder="Find your next favorite bite"></div>
 </div>
 @if($category !== 'All')

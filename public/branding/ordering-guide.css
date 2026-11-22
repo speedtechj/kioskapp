@@ -1,4 +1,22 @@
-.takeout-header .ordering-guide-trigger {
+.takeout-menu-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-block: 12px 8px;
+}
+
+@media (max-width: 760px) {
+    body .customer-app.customer-app .takeout-menu-heading .phone-menu-title {
+        margin: 0;
+    }
+
+    .takeout-catalog .takeout-header {
+        margin-bottom: 16px;
+    }
+}
+
+.takeout-menu-heading .ordering-guide-trigger {
     flex: 0 0 44px;
     width: 44px;
     height: 44px;
