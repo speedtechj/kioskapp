@@ -27,10 +27,6 @@ class TakeoutMenu extends Component
 
     public array $cart = [];
 
-    public string $category = 'All';
-
-    public string $search = '';
-
     public bool $reviewOpen = false;
 
     #[Locked]
@@ -207,13 +203,12 @@ class TakeoutMenu extends Component
     public function render()
     {
         $kiosk = $this->kiosk();
-        $all = $kiosk->visibleProducts()->where('business_id', $kiosk->business_id)->where('active', true)->get();
-        $languages = array_intersect_key(config('gather-ai.languages'), $all->flatMap(fn ($p) => array_keys($p->published_translations ?? []))->flip()->all());
+        $products = $kiosk->visibleProducts()->where('business_id', $kiosk->business_id)->where('active', true)->get();
+        $languages = array_intersect_key(config('gather-ai.languages'), $products->flatMap(fn ($p) => array_keys($p->published_translations ?? []))->flip()->all());
         $language = isset($languages[$this->menuLanguage]) ? $this->menuLanguage : '';
-        $products = $all->filter(fn ($p) => ($this->category === 'All' || $p->category === $this->category) && str_contains(mb_strtolower($p->menuText('name', $language)), mb_strtolower($this->search)));
-        $categories = $all->pluck('category')->unique();
-        $cartProducts = $all->whereIn('id', array_keys($this->cart));
-        $toppings = $this->cart ? $this->toppingOptions($kiosk->business_id) : collect();
+        $categories = $products->pluck('category')->unique();
+        $cartProducts = $products->whereIn('id', array_keys($this->cart));
+        $toppings = $this->reviewOpen && $this->cart ? $this->toppingOptions($kiosk->business_id) : collect();
         $toppingSubtotal = $this->toppingSubtotal($toppings);
         $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
         $fee = (int) round($subtotal * $kiosk->service_charge_bps / 10000);
@@ -222,7 +217,7 @@ class TakeoutMenu extends Component
 
         $activeOrder = $this->reviewOpen ? null : $this->activeTakeoutOrder($kiosk);
 
-        $detail = $all->firstWhere('id', $this->detailId);
+        $detail = $products->firstWhere('id', $this->detailId);
 
         return view('livewire.takeout-menu', compact('detail', 'toppings', 'toppingSubtotal', 'activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
     }

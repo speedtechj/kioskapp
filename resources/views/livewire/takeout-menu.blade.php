@@ -1,10 +1,10 @@
 @assets
 <link rel="stylesheet" href="{{ asset('branding/customer-ordering-hours.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/takeout-checkout.css') }}">
-<link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=checkout-menu-1' }}">
+<link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=local-menu-1' }}">
 <link rel="stylesheet" href="{{ asset('branding/ordering-guide.css') . '?v=menu-row-1' }}">
 @endassets
-<main wire:poll.15s class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
+<main wire:poll.30s x-data="{ menuCategory: null, menuSearch: '' }" class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
 @if($detailId !== null && !$reviewOpen)
     <header class="takeout-review-header">
         <button type="button" class="icon-btn" wire:click="closeItem" aria-label="Back to menu"><x-g-icon name="chevron-left"/></button>
@@ -67,27 +67,37 @@
         aria-haspopup="dialog" x-on:click="$refs.orderingGuide.showModal()">?</button>
     @include('livewire.partials.ordering-guide')
 </div>
-<div class="phone-menu-controls"><div role="group" aria-label="Menu categories" class="categories takeout-categories"><button class="chip {{ $category==='All'?'selected':'' }}" type="button" aria-pressed="{{ $category === 'All' ? 'true' : 'false' }}" wire:click="$set('category','All')">All</button>@foreach($categories as $c)<button class="chip {{ $category===$c?'selected':'' }}" type="button" aria-pressed="{{ $category === $c ? 'true' : 'false' }}" wire:click="$set('category',{{ Js::from($c) }})">{{ $c }}</button>@endforeach</div>
-<div class="search"><x-g-icon name="magnifying-glass"/><input wire:model.live.debounce.200ms="search" aria-label="Search takeout menu" placeholder="Find your next favorite bite"></div>
+<div class="phone-menu-controls">
+    <div role="group" aria-label="Menu categories" class="categories takeout-categories">
+        <button type="button" class="chip selected" aria-pressed="true"
+            x-bind:class="{ selected: menuCategory === null }" x-bind:aria-pressed="menuCategory === null"
+            x-on:click="menuCategory = null">All</button>
+        @foreach($categories as $menuCategory)
+            <button type="button" class="chip" data-category="{{ $menuCategory }}" aria-pressed="false"
+                x-bind:class="{ selected: menuCategory === $el.dataset.category }"
+                x-bind:aria-pressed="menuCategory === $el.dataset.category"
+                x-on:click="menuCategory = $el.dataset.category">{{ $menuCategory }}</button>
+        @endforeach
+    </div>
+    <div class="search"><x-g-icon name="magnifying-glass"/><input x-model="menuSearch" aria-label="Search takeout menu" placeholder="Find your next favorite bite"></div>
 </div>
-@if($category !== 'All')
-    <h2 class="phone-menu-category">{{ $category }}</h2>
-@endif
+<h2 class="phone-menu-category" hidden x-bind:hidden="menuCategory === null" x-text="menuCategory"></h2>
 <div class="customer-products takeout-photo-grid">
-    @forelse($products as $product)
-        <article class="takeout-photo-card" wire:key="takeout-product-{{ $product->id }}">
+    @foreach($products as $product)
+        <article class="takeout-photo-card" wire:key="takeout-product-{{ $product->id }}"
+            data-category="{{ $product->category }}" data-search-name="{{ mb_strtolower($product->menuText('name', $language)) }}"
+            x-bind:hidden="(menuCategory !== null && menuCategory !== $el.dataset.category) || !$el.dataset.searchName.includes(menuSearch.toLowerCase())">
             <button type="button" class="takeout-photo" wire:click="showItem({{ $product->id }})"
                 aria-label="View {{ $product->menuText('name', $language) }}{{ isset($cart[$product->id]) ? ', '.$cart[$product->id].' in cart' : '' }}">
-                <img src="{{ $product->image }}" alt="">
+                <img src="{{ $product->image }}" alt="" decoding="async" @if($loop->index >= 2) loading="lazy" @endif>
                 <span class="btn primary" aria-hidden="true">{{ $cart[$product->id] ?? '+' }}</span>
             </button>
             <h3>{{ $product->menuText('name', $language) }}</h3>
             <strong>₱{{ number_format($product->price / 100, 2) }}</strong>
             @if($product->pivot->stock < 1)<small>Sold out</small>@endif
         </article>
-    @empty
-        <p class="empty">No matching items. Try another category.</p>
-    @endforelse
+    @endforeach
+    <p class="empty takeout-no-matches" role="status">No matching items. Try another category.</p>
 </div>
 @error('cart')<p class="error" role="alert">{{ $message }}</p>@enderror
 <footer class="customer-footer"><x-g-icon name="heart"/>Fresh food. Your own pace. Gather.</footer>

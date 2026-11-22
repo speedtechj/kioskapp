@@ -122,3 +122,13 @@
 .takeout-back-to-menu p {
     margin: 6px 0 0;
 }
+
+.takeout-catalog .takeout-photo-card[hidden],
+body .customer-app.takeout-catalog .phone-menu-category[hidden],
+.takeout-photo-card:not([hidden]) ~ .takeout-no-matches {
+    display: none;
+}
+
+.takeout-no-matches {
+    grid-column: 1 / -1;
+}
