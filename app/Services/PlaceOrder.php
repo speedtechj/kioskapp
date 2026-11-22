@@ -21,7 +21,14 @@ class PlaceOrder
         return hash('sha256', json_encode($toppingLines === [] ? [$cart, $prices, $serviceRate] : [$cart, $prices, $serviceRate, $toppingLines], JSON_THROW_ON_ERROR));
     }
 
-    public function handle(Kiosk $kiosk, array $cart, string $requestKey, ?DiningTable $table = null, ?string $method = null, ?string $name = null, ?string $notes = null, ?array $payments = null, bool $payAtPickup = false, ?string $cashReceived = null, array $complimentaryIds = [], string $discountType = 'percent', string $discountValue = '', array $adjustmentApprovals = [], string $approvedCart = '', array $toppings = []): Order
+    public static function toppingsForApproval(array $lines, array $complimentaryIds): array
+    {
+        return array_map(fn (array $line) => in_array((int) $line['id'], $complimentaryIds, true)
+            ? $line + ['complimentary' => true]
+            : $line, $lines);
+    }
+
+    public function handle(Kiosk $kiosk, array $cart, string $requestKey, ?DiningTable $table = null, ?string $method = null, ?string $name = null, ?string $notes = null, ?array $payments = null, bool $payAtPickup = false, ?string $cashReceived = null, array $complimentaryIds = [], string $discountType = 'percent', string $discountValue = '', array $adjustmentApprovals = [], string $approvedCart = '', array $toppings = [], array $complimentaryToppingIds = []): Order
     {
         abort_unless($kiosk->active, 404);
         if ($table) {
@@ -29,7 +36,7 @@ class PlaceOrder
         }
         abort_if($payAtPickup && ($table !== null || $method !== null || $payments !== null), 422);
         $isPos = $payAtPickup || $method !== null || $payments !== null;
-        abort_if(! $isPos && ($complimentaryIds !== [] || $discountValue !== ''), 403);
+        abort_if(! $isPos && ($complimentaryIds !== [] || $complimentaryToppingIds !== [] || $discountValue !== ''), 403);
         validator(['complimentary' => $complimentaryIds], ['complimentary' => 'array|max:50', 'complimentary.*' => 'integer|distinct|min:1'])->validate();
         $complimentaryIds = array_map('intval', $complimentaryIds);
         if (array_diff($complimentaryIds, array_keys($cart))) {
@@ -48,7 +55,7 @@ class PlaceOrder
             }
         }
 
-        return DB::transaction(function () use ($kiosk, $cart, $requestKey, $table, $method, $name, $notes, $payments, $isPos, $payAtPickup, $cashReceived, $complimentaryIds, $discountType, $discountValue, $adjustmentApprovals, $approvedCart, $toppings) {
+        return DB::transaction(function () use ($kiosk, $cart, $requestKey, $table, $method, $name, $notes, $payments, $isPos, $payAtPickup, $cashReceived, $complimentaryIds, $discountType, $discountValue, $adjustmentApprovals, $approvedCart, $toppings, $complimentaryToppingIds) {
             BusinessAvailability::enforce($kiosk->business_id, lock: true);
             $locked = Kiosk::whereKey($kiosk->id)->lockForUpdate()->firstOrFail();
             abort_unless($locked->active, 404);
@@ -68,17 +75,30 @@ class PlaceOrder
                 throw ValidationException::withMessages(['cart' => 'An item is no longer available. Please refresh your basket.']);
             }
             $toppingLines = OrderToppings::lines($kiosk->business_id, $toppings, lock: true);
-            if ($complimentaryIds && $discountValue !== '') {
+            validator(['ids' => $complimentaryToppingIds], ['ids' => 'array|max:50', 'ids.*' => 'integer|distinct|min:1'])->validate();
+            $complimentaryToppingIds = array_map('intval', $complimentaryToppingIds);
+            if (array_diff($complimentaryToppingIds, array_column($toppingLines, 'id'))) {
+                throw ValidationException::withMessages(['adjustment' => 'Complimentary toppings must be in the cart.']);
+            }
+            $approvedToppings = self::toppingsForApproval($toppingLines, $complimentaryToppingIds);
+            if (($complimentaryIds || $complimentaryToppingIds) && $discountValue !== '') {
                 throw ValidationException::withMessages(['adjustment' => 'Choose either a discount or complimentary items.']);
             }
-            if (($complimentaryIds || $discountValue !== '') && (! $adjustmentApprovals
-                || $approvedCart !== self::adjustmentFingerprint($cart, $products->pluck('price', 'id')->all(), $locked->service_charge_bps, $toppingLines))) {
+            if (($complimentaryIds || $complimentaryToppingIds || $discountValue !== '') && (! $adjustmentApprovals
+                || $approvedCart !== self::adjustmentFingerprint($cart, $products->pluck('price', 'id')->all(), $locked->service_charge_bps, $approvedToppings))) {
                 throw ValidationException::withMessages(['adjustment' => 'Get manager approval for the current cart before checkout.']);
             }
 
             $subtotal = array_sum(array_column($toppingLines, 'total'));
             $items = [];
             $complimentary = 0;
+            foreach ($approvedToppings as &$line) {
+                if ($line['complimentary'] ?? false) {
+                    $complimentary += $line['total'];
+                    $line['total'] = 0;
+                }
+            }
+            unset($line);
             foreach ($products as $product) {
                 $qty = (int) $cart[$product->id];
                 if ($qty > $product->pivot->stock) {
@@ -98,7 +118,7 @@ class PlaceOrder
                 $order->forceFill(['adjustment_approvals' => $adjustmentApprovals])->save();
             }
             if ($toppingLines) {
-                $order->forceFill(['topping_lines' => $toppingLines])->save();
+                $order->forceFill(['topping_lines' => $approvedToppings])->save();
             }
             $order->items()->createMany($items);
             foreach ($products as $product) {

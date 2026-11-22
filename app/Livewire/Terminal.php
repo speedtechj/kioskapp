@@ -3,12 +3,15 @@
 namespace App\Livewire;
 
 use App\Livewire\Concerns\ApprovesOrderAdjustments;
+use App\Livewire\Concerns\ChecksBusinessAvailability;
 use App\Livewire\Concerns\ManagesRegisterShift;
+use App\Livewire\Concerns\SelectsToppings;
 use App\Models\Business;
 use App\Models\Kiosk;
 use App\Models\Order;
 use App\Services\Access;
 use App\Services\OrderAdjustments;
+use App\Services\OrderToppings;
 use App\Services\PlaceOrder;
 use App\Services\RecordPayment;
 use App\Services\RegisterShifts;
@@ -19,11 +22,11 @@ use Livewire\Component;
 
 class Terminal extends Component
 {
-    use \App\Livewire\Concerns\SelectsToppings;
-    use \App\Livewire\Concerns\ChecksBusinessAvailability;
-
     use ApprovesOrderAdjustments;
+    use ChecksBusinessAvailability;
     use ManagesRegisterShift;
+    use SelectsToppings;
+
     #[Locked]
     public int $businessId;
 
@@ -45,6 +48,9 @@ class Terminal extends Component
 
     #[Locked]
     public array $complimentaryIds = [];
+
+    #[Locked]
+    public array $complimentaryToppingIds = [];
 
     #[Locked]
     public string $discountType = 'percent';
@@ -122,7 +128,7 @@ class Terminal extends Component
     public function requestCartDiscount(bool $remove = false): void
     {
         $this->authorizeAdjustment();
-        if ($this->complimentaryIds || ($remove !== ($this->discountValue !== ''))) {
+        if ($this->complimentaryToppingIds || $this->complimentaryIds || ($remove !== ($this->discountValue !== ''))) {
             throw ValidationException::withMessages(['adjustment' => 'Remove the current adjustment before switching types.']);
         }
         $type = $remove ? 'percent' : $this->proposedDiscountType;
@@ -147,6 +153,22 @@ class Terminal extends Component
         $this->reviewAdjustment($this->cartProposal('percent', '', $ids, ($free ? 'Make complimentary: ' : 'Undo complimentary: ').$product->name));
     }
 
+    public function requestCartComplimentaryTopping(int $id): void
+    {
+        $this->authorizeAdjustment();
+        abort_unless(isset($this->toppingQuantities[$id]), 422);
+        if ($this->discountValue !== '') {
+            throw ValidationException::withMessages(['adjustment' => 'Remove the discount before making a topping free.']);
+        }
+
+        $topping = OrderToppings::catalog($this->businessId)->where('active', true)->find($id);
+        abort_unless($topping, 404);
+        $free = ! in_array($id, $this->complimentaryToppingIds, true);
+        $ids = $free ? [...$this->complimentaryToppingIds, $id] : array_values(array_diff($this->complimentaryToppingIds, [$id]));
+        $label = ($free ? 'Make topping complimentary: ' : 'Undo complimentary topping: ').$topping->name;
+        $this->reviewAdjustment($this->cartProposal('percent', '', $this->complimentaryIds, $label, $ids));
+    }
+
     private function authorizeAdjustment(): void
     {
         Access::authorize($this->businessId, 'orders.pay', $this->kioskId);
@@ -155,12 +177,12 @@ class Terminal extends Component
 
     private function ensureCartEditable(): void
     {
-        if ($this->discountValue !== '' || $this->complimentaryIds) {
+        if ($this->discountValue !== '' || $this->complimentaryIds || $this->complimentaryToppingIds) {
             throw ValidationException::withMessages(['cart' => 'Remove the approved adjustment before changing items or quantities.']);
         }
     }
 
-    private function cartProposal(string $type, string $value, array $ids, string $label): array
+    private function cartProposal(string $type, string $value, array $ids, string $label, ?array $toppingIds = null): array
     {
         $kiosk = Kiosk::findOrFail($this->kioskId);
         $products = $kiosk->visibleProducts()->where('active', true)->whereIn('products.id', array_keys($this->cart))->get();
@@ -168,10 +190,12 @@ class Terminal extends Component
             throw ValidationException::withMessages(['adjustment' => 'Add available items before requesting an adjustment.']);
         }
         $lineTotal = fn ($product) => $product->price * (int) $this->cart[$product->id];
-        $toppingLines = \App\Services\OrderToppings::lines($this->businessId, $this->toppingQuantities);
+        $toppingLines = OrderToppings::lines($this->businessId, $this->toppingQuantities);
+        $toppingIds ??= $this->complimentaryToppingIds;
+        $toppingComp = fn (array $ids) => collect($toppingLines)->whereIn('id', $ids)->sum('total');
         $subtotal = $products->sum($lineTotal) + array_sum(array_column($toppingLines, 'total'));
-        $before = OrderAdjustments::totals($subtotal, $products->whereIn('id', $this->complimentaryIds)->sum($lineTotal), $this->discountType, $this->discountValue, $kiosk->service_charge_bps)['total'];
-        $after = OrderAdjustments::totals($subtotal, $products->whereIn('id', $ids)->sum($lineTotal), $type, $value, $kiosk->service_charge_bps);
+        $before = OrderAdjustments::totals($subtotal, $products->whereIn('id', $this->complimentaryIds)->sum($lineTotal) + $toppingComp($this->complimentaryToppingIds), $this->discountType, $this->discountValue, $kiosk->service_charge_bps)['total'];
+        $after = OrderAdjustments::totals($subtotal, $products->whereIn('id', $ids)->sum($lineTotal) + $toppingComp($toppingIds), $type, $value, $kiosk->service_charge_bps);
         if ($value !== '' && $after['discount'] === 0) {
             throw ValidationException::withMessages(['discountValue' => 'Enter a discount greater than zero.']);
         }
@@ -180,21 +204,22 @@ class Terminal extends Component
 
         return [
             'label' => $label, 'before' => $before, 'after' => $after['total'],
-            'type' => $type, 'value' => $value, 'ids' => $ids,
-            'fingerprint' => PlaceOrder::adjustmentFingerprint($this->cart, $prices, $kiosk->service_charge_bps, $toppingLines),
+            'type' => $type, 'value' => $value, 'ids' => $ids, 'toppingIds' => $toppingIds,
+            'fingerprint' => PlaceOrder::adjustmentFingerprint($this->cart, $prices, $kiosk->service_charge_bps, PlaceOrder::toppingsForApproval($toppingLines, $toppingIds)),
         ];
     }
 
     private function commitAdjustment(array $proposal, array $approval): void
     {
         $this->authorizeAdjustment();
-        if ($proposal !== $this->cartProposal($proposal['type'], $proposal['value'], $proposal['ids'], $proposal['label'])) {
+        if ($proposal !== $this->cartProposal($proposal['type'], $proposal['value'], $proposal['ids'], $proposal['label'], $proposal['toppingIds'] ?? [])) {
             throw ValidationException::withMessages(['adjustment' => 'The order changed. Review the adjustment again.']);
         }
 
         $this->discountType = $proposal['type'];
         $this->discountValue = $proposal['value'];
         $this->complimentaryIds = $proposal['ids'];
+        $this->complimentaryToppingIds = $proposal['toppingIds'];
         $this->approvedCart = $proposal['fingerprint'];
         $this->adjustmentApprovals[] = $approval + ['action' => $proposal['label'], 'before' => $proposal['before'], 'after' => $proposal['after']];
         $this->reset('proposedDiscountType', 'proposedDiscountValue');
@@ -212,7 +237,7 @@ class Terminal extends Component
             $rows = RecordPayment::withCashReceived($rows);
         }
         $cashReceived = $method === 'cash' && ($requireCashReceived || $this->cashReceived !== '') ? $this->cashReceived : null;
-        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, $table, $method, payments: $rows, cashReceived: $cashReceived, complimentaryIds: $this->complimentaryIds, discountType: $this->discountType, discountValue: $this->discountValue, adjustmentApprovals: $this->adjustmentApprovals, approvedCart: $this->approvedCart, toppings: $this->toppingQuantities);
+        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, $table, $method, payments: $rows, cashReceived: $cashReceived, complimentaryIds: $this->complimentaryIds, discountType: $this->discountType, discountValue: $this->discountValue, adjustmentApprovals: $this->adjustmentApprovals, approvedCart: $this->approvedCart, toppings: $this->toppingQuantities, complimentaryToppingIds: $this->complimentaryToppingIds);
         $this->finishCheckout($order);
     }
 
@@ -234,6 +259,7 @@ class Terminal extends Component
             adjustmentApprovals: $this->adjustmentApprovals,
             approvedCart: $this->approvedCart,
             toppings: $this->toppingQuantities,
+            complimentaryToppingIds: $this->complimentaryToppingIds,
         );
         $this->finishCheckout($order);
     }
@@ -245,7 +271,7 @@ class Terminal extends Component
         $this->receiptFree = (int) $order->total === 0;
         $this->cart = [];
         $this->toppingQuantities = [];
-        $this->reset('cashReceived', 'complimentaryIds', 'discountType', 'discountValue', 'proposedDiscountType', 'proposedDiscountValue', 'adjustmentApprovals', 'approvedCart');
+        $this->reset('cashReceived', 'complimentaryIds', 'complimentaryToppingIds', 'discountType', 'discountValue', 'proposedDiscountType', 'proposedDiscountValue', 'adjustmentApprovals', 'approvedCart');
         $this->resetValidation();
         $this->paymentRows = [['method' => 'gcash', 'amount' => ''], ['method' => 'cash', 'amount' => '']];
         $this->requestKey = (string) Str::uuid();
@@ -290,6 +316,7 @@ class Terminal extends Component
         $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
         $complimentary = $cartProducts->whereIn('id', $this->complimentaryIds)
             ->sum(fn ($product) => $product->price * ($this->cart[$product->id] ?? 0));
+        $complimentary += $this->toppingSubtotal($toppings->whereIn('id', $this->complimentaryToppingIds));
         $adjustmentsValid = true;
         try {
             $totals = OrderAdjustments::totals($subtotal, $complimentary, $this->discountType, $this->discountValue, $kiosk->service_charge_bps);

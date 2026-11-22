@@ -65,20 +65,20 @@
 @endif
 </strong></div>@empty<div class="cart-empty"><span class="orange-icon"><x-g-icon name="shopping-bag"/></span><h3>Something delicious awaits.</h3><p>Tap a menu item to start an order.</p></div>@endforelse
 <div x-show="!payStep">
-    @include('livewire.partials.topping-picker', ['canIncrease' => (bool) $registerShift, 'canEdit' => !$complimentaryIds && $discountValue === ''])
+    @include('livewire.partials.topping-picker', ['canIncrease' => (bool) $registerShift, 'canEdit' => !$complimentaryToppingIds && !$complimentaryIds && $discountValue === ''])
 </div>
 <div x-show="payStep">
     @foreach($toppings as $topping)
         @if($quantity = $toppingQuantities[$topping->id] ?? 0)
             <div class="total-row">
                 <span>{{ $quantity }} × {{ $topping->name }}</span>
-                <strong>{{ $topping->active ? '₱'.number_format($topping->price*$quantity/100, 2) : 'Unavailable' }}</strong>
+                <strong>{{ !$topping->active ? 'Unavailable' : (in_array($topping->id, $complimentaryToppingIds, true) ? 'Complimentary · ₱0.00' : '₱'.number_format($topping->price*$quantity/100, 2)) }}</strong>
             </div>
         @endif
     @endforeach
 </div>
 </div><div class="cart-checkout"><div class="checkout-totals"><div class="total-row"><span>Subtotal</span><span>₱{{ number_format($subtotal/100,2) }}</span></div>
-@include('livewire.partials.topping-subtotal-breakdown')
+@include('livewire.partials.topping-subtotal-breakdown', ['freeToppingIds' => $complimentaryToppingIds])
 @if($complimentary > 0)<div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($complimentary / 100, 2) }}</strong></div>@endif
 @if($discount > 0)<div class="total-row"><span>Discount</span><strong>−₱{{ number_format($discount / 100, 2) }}</strong></div>@endif
 <div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div><div class="total-row grand-total"><strong>Order total</strong><strong>₱{{ number_format($totalDue/100,2) }}</strong></div></div>@if($cart && \App\Services\Access::allows(auth()->user(), $business->id, 'orders.pay'))
@@ -89,7 +89,7 @@
         <p><strong>Discount applied</strong> · Manager approved</p>
         <button type="button" class="btn" wire:click="requestCartDiscount(true)">Remove discount</button>
         <p class="muted">Remove the discount to make an item free.</p>
-    @elseif($complimentaryIds)
+    @elseif($complimentaryIds || $complimentaryToppingIds)
         <p><strong>Complimentary items applied</strong> · Manager approved</p>
         <button type="button" class="btn" disabled>Apply discount</button>
         <p class="muted">Undo all free items to apply a discount.</p>
@@ -105,6 +105,16 @@
                 {{ in_array($product->id, $complimentaryIds, true) ? 'Undo free item' : 'Make item free' }}
             </button>
         </div>
+    @endforeach
+    @foreach($toppings as $topping)
+        @if($topping->active && ($toppingQuantities[$topping->id] ?? 0) > 0)
+            <div class="pos-adjustment-item" wire:key="adjustment-topping-{{ $topping->id }}">
+                <strong>{{ $topping->name }} × {{ $toppingQuantities[$topping->id] }}</strong>
+                <button type="button" class="btn" wire:click="requestCartComplimentaryTopping({{ $topping->id }})" @disabled($discountValue !== '')>
+                    {{ in_array($topping->id, $complimentaryToppingIds, true) ? 'Undo free topping' : 'Make topping free' }}
+                </button>
+            </div>
+        @endif
     @endforeach
 </details>
 @endif

@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ChecksBusinessAvailability;
+use App\Livewire\Concerns\SelectsToppings;
 use App\Models\Business;
 use App\Models\Kiosk;
 use App\Models\Order;
@@ -14,8 +16,8 @@ use Livewire\Component;
 
 class TakeoutMenu extends Component
 {
-    use \App\Livewire\Concerns\SelectsToppings;
-    use \App\Livewire\Concerns\ChecksBusinessAvailability;
+    use ChecksBusinessAvailability;
+    use SelectsToppings;
 
     #[Locked]
     public string $token;
@@ -30,6 +32,15 @@ class TakeoutMenu extends Component
     public string $search = '';
 
     public bool $reviewOpen = false;
+
+    #[Locked]
+    public ?int $detailId = null;
+
+    #[Locked]
+    public int $detailQuantity = 1;
+
+    #[Locked]
+    public bool $checkoutOpen = false;
 
     public string $name = '';
 
@@ -85,19 +96,71 @@ class TakeoutMenu extends Component
         return $this->kiosk()->business_id;
     }
 
-    public function add(int $id): void
+    public function showItem(int $id): void
+    {
+        $kiosk = $this->kiosk();
+        $kiosk->visibleProducts()->where('business_id', $kiosk->business_id)->where('active', true)->findOrFail($id);
+        $this->detailId = $id;
+        $this->detailQuantity = 1;
+        $this->resetValidation('cart');
+        $this->scrollToTop();
+    }
+
+    public function closeItem(): void
+    {
+        $this->detailId = null;
+        $this->scrollToTop();
+    }
+
+    public function changeDetailQuantity(bool $increase): void
+    {
+        if ($this->detailId !== null) {
+            $this->detailQuantity = max(1, min(99, $this->detailQuantity + ($increase ? 1 : -1)));
+        }
+    }
+
+    public function addDetail(): void
+    {
+        if ($this->detailId !== null && $this->add($this->detailId, $this->detailQuantity)) {
+            $this->closeItem();
+            $this->reviewOpen = true;
+        }
+    }
+
+    public function showCheckout(): void
+    {
+        if ($this->cart && RegisterShifts::active($this->kiosk()->id)) {
+            $this->reviewOpen = true;
+            $this->checkoutOpen = true;
+            $this->scrollToTop();
+        }
+    }
+
+    public function closeCheckout(): void
+    {
+        $this->checkoutOpen = false;
+        $this->scrollToTop();
+    }
+
+    public function add(int $id, int $count = 1): bool
     {
         $kiosk = $this->kiosk();
         if (! RegisterShifts::active($kiosk->id)) {
-            return;
+            return false;
         }
+        abort_unless($count >= 1 && $count <= 99, 422);
         $product = $kiosk->visibleProducts()->where('business_id', $kiosk->business_id)->where('active', true)->findOrFail($id);
-        $quantity = ($this->cart[$id] ?? 0) + 1;
+        $quantity = ($this->cart[$id] ?? 0) + $count;
         if ($quantity <= $product->pivot->stock && $quantity <= 99) {
             $this->cart[$id] = $quantity;
-        } else {
-            $this->addError('cart', 'This item has reached its available quantity.');
+            $this->resetValidation('cart');
+
+            return true;
         }
+
+        $this->addError('cart', 'This item has reached its available quantity.');
+
+        return false;
     }
 
     public function decrease(int $id): void
@@ -124,10 +187,16 @@ class TakeoutMenu extends Component
 
     public function updatedReviewOpen(): void
     {
+        $this->checkoutOpen = false;
+        $this->scrollToTop();
+    }
+
+    private function scrollToTop(): void
+    {
         $this->js('window.scrollTo({top: 0, behavior: "instant"})');
     }
 
-    public string $menuLanguage = "";
+    public string $menuLanguage = '';
 
     public function render()
     {
@@ -147,6 +216,8 @@ class TakeoutMenu extends Component
 
         $activeOrder = $this->reviewOpen ? null : $this->activeTakeoutOrder($kiosk);
 
-        return view('livewire.takeout-menu', compact('toppings', 'toppingSubtotal', 'activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
+        $detail = $all->firstWhere('id', $this->detailId);
+
+        return view('livewire.takeout-menu', compact('detail', 'toppings', 'toppingSubtotal', 'activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
     }
 }

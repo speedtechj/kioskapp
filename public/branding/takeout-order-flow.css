@@ -1,0 +1,69 @@
+.takeout-catalog .takeout-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 10px;
+}
+.takeout-photo-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff7ea;
+}
+.takeout-photo { position: relative; }
+.takeout-photo img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+.takeout-photo .btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.takeout-photo-card h3,
+.takeout-photo-card > strong,
+.takeout-photo-card > small {
+    display: block;
+    margin: 6px 10px;
+    overflow-wrap: anywhere;
+}
+.takeout-product-detail { max-width: 570px; margin-inline: auto; }
+.takeout-product-detail > img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 16px;
+}
+.takeout-product-detail h2 { margin: 12px 0 4px; font-size: clamp(1.6rem, 4vw, 2rem); }
+.takeout-price { font-size: 1.35rem; color: #a84108; }
+.takeout-product-detail > p { margin-block: 12px; }
+.takeout-detail-quantity {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: #fff2df;
+    border-radius: 12px;
+    padding: 8px 12px;
+}
+.takeout-detail-quantity .quantity button { width: 44px; height: 44px; }
+.takeout-detail-note { color: #5b534a; }
+@media (max-width: 760px) {
+    .takeout-catalog .takeout-hero,
+    .takeout-catalog .takeout-welcome { display: none; }
+    .takeout-checkout .takeout-submit {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+        padding-block: 8px max(8px, env(safe-area-inset-bottom));
+        background: var(--paper);
+    }
+}
