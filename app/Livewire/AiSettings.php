@@ -35,6 +35,8 @@ class AiSettings extends Component
 
     public array $helpers = [];
 
+    public string $customerAnswers = '';
+
     public string $period = 'current';
 
     #[Url]
@@ -60,6 +62,7 @@ class AiSettings extends Component
         $this->authorizeManager();
         $settings = GatherAi::settings($business->id);
         $this->enabled = $settings->enabled;
+        $this->customerAnswers = $settings->helpers['customer_knowledge']['answers'] ?? '';
         $this->pauseAtLimit = $settings->pause_at_limit;
         $this->monthlyLimit = number_format($settings->monthly_limit_cents / 100, 2, '.', '');
         foreach (config('gather-ai.helpers') as $id => $label) {
@@ -108,6 +111,21 @@ class AiSettings extends Component
             $settings->update(['helpers' => $helpers]);
         });
         session()->flash('ai_notice', 'Helper settings saved.');
+    }
+
+    public function saveCustomerAnswers(): void
+    {
+        $this->authorizeManager();
+        $this->validate(['customerAnswers' => 'string|max:4000']);
+
+        DB::transaction(function () {
+            $settings = BusinessAiSetting::lockForUpdate()->findOrFail($this->businessId);
+            $helpers = $settings->helpers ?? [];
+            $helpers['customer_knowledge'] = ['answers' => trim($this->customerAnswers)];
+            $settings->update(['helpers' => $helpers]);
+        });
+
+        session()->flash('ai_notice', 'Ask Joy answers saved.');
     }
 
     public function updatedProductId(): void

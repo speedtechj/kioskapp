@@ -1,5 +1,5 @@
 <div class="ask-joy" x-data="{
-    question: '', messages: [], busy: false,
+    question: '', messages: [], history: [], busy: false,
     money(amount) {
         return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount / 100)
     },
@@ -14,7 +14,8 @@
         this.messages.push({ question })
         this.scrollToLatest()
         try {
-            const reply = await $wire.askJoy(question)
+            const reply = await $wire.askJoy(question, this.history.slice(-4))
+            if (reply.answer) this.history = [...this.history.slice(-3), { question, answer: reply.answer }]
             this.messages.push({ answer: reply.answer || reply.error || 'Ask Joy is currently unavailable.', item: reply.item })
         } catch {
             this.messages.push({ answer: 'Ask Joy is currently unavailable. You can still browse the menu.' })
@@ -42,6 +43,7 @@
         <div class="ask-joy-panel">
             <header class="ask-joy-header">
                 <div><h2 id="ask-joy-title"><span aria-hidden="true">✧</span> Ask Joy</h2><p>AI Menu Assistant</p></div>
+                <button type="button" x-show="messages.length" :disabled="busy" x-on:click="messages = []; history = []; question = ''" class="btn">New chat</button>
                 <button type="button" class="ask-joy-close" aria-label="Close Ask Joy" x-on:click="$refs.assistant.close()" autofocus>×</button>
             </header>
             <div class="ask-joy-conversation" x-ref="conversation">

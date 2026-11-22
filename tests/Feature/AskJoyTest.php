@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\AiSettings;
 use App\Livewire\CustomerMenu;
 use App\Livewire\TakeoutMenu;
 use App\Models\Business;
+use App\Models\User;
 use App\Services\GatherAi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -55,5 +57,33 @@ class AskJoyTest extends TestCase
         $settings->update(['helpers' => ['customer' => ['provider' => 'groq', 'enabled' => false]]]);
         $takeout->call('askJoy', 'Any bowls?')->assertDontSee('Ask Joy');
         Http::assertSentCount(2);
+
+        $manager = User::factory()->create();
+        $business->users()->attach($manager, ['role' => 'manager']);
+        $approvedAnswer = 'Pickup is at the cashier.';
+        Livewire::actingAs($manager)->test(AiSettings::class, ['business' => $business])
+            ->set('customerAnswers', $approvedAnswer)
+            ->call('saveCustomerAnswers')
+            ->assertHasNoErrors();
+
+        $helpers = $settings->fresh()->helpers;
+        $this->assertFalse($helpers['customer']['enabled']);
+        $helpers['customer']['enabled'] = true;
+        $settings->update(['helpers' => $helpers]);
+
+        $history = [
+            ['question' => 'May ₱150 lang ako', 'answer' => 'Try the Siomai Bowl.'],
+            ['question' => ['malformed'], 'answer' => 'Ignore this turn.'],
+        ];
+        $takeout->call('askJoy', 'With egg?', $history)->assertHasNoErrors();
+
+        Http::assertSent(function ($request) use ($history, $approvedAnswer) {
+            $payload = json_decode($request['messages'][1]['content'], true);
+
+            return $payload['question'] === 'With egg?'
+                && $payload['conversation'] === [$history[0]]
+                && $payload['approved_restaurant_answers'] === $approvedAnswer;
+        });
+        Http::assertSentCount(3);
     }
 }

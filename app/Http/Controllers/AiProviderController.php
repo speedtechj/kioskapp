@@ -52,7 +52,7 @@ class AiProviderController extends Controller
             } else {
                 unset($keys[$provider]);
                 foreach ($helpers as $helper => $config) {
-                    if ($config['provider'] === $provider) {
+                    if (($config['provider'] ?? null) === $provider) {
                         $helpers[$helper]['enabled'] = false;
                     }
                 }

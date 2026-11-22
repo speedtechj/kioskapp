@@ -99,6 +99,17 @@
             </div>
         </section>
 
+        <section class="card ai-card">
+            <h2>Teach Ask Joy</h2>
+            <p>Add approved answers to common questions about delivery, pickup, or store policies.</p>
+            <form wire:submit="saveCustomerAnswers">
+                <label for="ask-joy-answers">Restaurant questions and answers</label>
+                <textarea id="ask-joy-answers" wire:model="customerAnswers" rows="5" maxlength="4000" placeholder="Q: Do you deliver?&#10;A: We offer takeout and dine-in."></textarea>
+                @error('customerAnswers')<p class="error">{{ $message }}</p>@enderror
+                <button class="btn primary" type="submit" wire:loading.attr="disabled">Save answers</button>
+            </form>
+        </section>
+
         <section class="card ai-card" id="menu-writing">
             <h2>Menu Writing Assistant</h2>
             <label for="ai-product">Menu item</label>
