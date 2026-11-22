@@ -43,10 +43,13 @@
                     <label for="provider-key">{{ $providers[$provider]['label'] }} API key</label>
                     <input id="provider-key" type="password" name="api_key" placeholder="Paste your API key" autocomplete="off" maxlength="512" spellcheck="false">
                     <p class="muted">{{ isset($keySuffixes[$provider]) ? 'Saved key •••• '.$keySuffixes[$provider] : 'No key saved' }} · {{ $providers[$provider]['model'] }}</p>
+                    @if($provider === 'groq')
+                        <p><a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Get a Groq API key <x-g-icon name="arrow-up-right"/></a></p>
+                    @endif
                     <div class="ai-actions">
-                        <button class="btn primary" type="submit" name="action" value="save">Save key</button>
+                        <button class="btn primary" type="submit" name="action" value="save">{{ isset($keySuffixes[$provider]) ? 'Replace key' : 'Save key' }}</button>
+                        <button class="btn" type="submit" name="action" value="test">Test connection</button>
                         @if(isset($keySuffixes[$provider]))
-                            <button class="btn" type="submit" name="action" value="test">Test connection</button>
                             <button class="btn" type="submit" name="action" value="remove" onclick="return confirm('Remove this key and disable its helpers?')">Remove key</button>
                         @endif
                     </div>

@@ -39,7 +39,7 @@ class GatherAi
 
         try {
             $response = match ($provider) {
-                'openai' => $this->http()->withToken($key)->get("https://api.openai.com/v1/models/$model"),
+                'openai', 'groq' => $this->http()->withToken($key)->get($this->chatBaseUrl($provider).'/models/'.$model),
                 'anthropic' => $this->claude($key)->get("https://api.anthropic.com/v1/models/$model"),
                 'gemini' => $this->gemini($key)->get("https://generativelanguage.googleapis.com/v1beta/models/$model"),
             };
@@ -104,8 +104,8 @@ class GatherAi
 
     private function request(string $provider, string $key, string $model, string $instruction, string $data): array
     {
-        if ($provider === 'openai') {
-            $result = $this->http()->withToken($key)->post('https://api.openai.com/v1/chat/completions', [
+        if (in_array($provider, ['openai', 'groq'], true)) {
+            $result = $this->http()->withToken($key)->post($this->chatBaseUrl($provider).'/chat/completions', [
                 'model' => $model, 'max_completion_tokens' => self::OUTPUT_TOKENS,
                 'messages' => [['role' => 'system', 'content' => $instruction], ['role' => 'user', 'content' => $data]],
             ])->throw()->json();
@@ -131,6 +131,11 @@ class GatherAi
         return [collect(data_get($result, 'candidates.0.content.parts', []))->pluck('text')->implode("\n"),
             data_get($result, 'usageMetadata.promptTokenCount'),
             data_get($result, 'usageMetadata.candidatesTokenCount') === null ? null : data_get($result, 'usageMetadata.candidatesTokenCount') + data_get($result, 'usageMetadata.thoughtsTokenCount', 0)];
+    }
+
+    private function chatBaseUrl(string $provider): string
+    {
+        return $provider === 'groq' ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
     }
 
     private function http(): PendingRequest
