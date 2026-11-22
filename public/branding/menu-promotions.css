@@ -1,0 +1,58 @@
+.menu-promo-banner {
+    display: grid;
+    gap: 4px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 12px;
+    background: #ffebc5;
+    color: #462707;
+}
+
+.menu-promo-active, .menu-promo-badge {
+    background: #e0efce;
+    color: #25471d;
+}
+
+.menu-promo-banner .text-link {
+    justify-self: start;
+    text-decoration: underline;
+    color: inherit;
+}
+
+.menu-promo-dialog {
+    width: min(100%, 540px);
+    max-height: 85dvh;
+    margin: auto auto 0;
+    padding: 18px;
+    border: 1px solid #e5dbc8;
+    border-radius: 18px 18px 0 0;
+    background: #fffaf0;
+    color: #26291e;
+    overflow: auto;
+}
+
+.menu-promo-dialog::backdrop { background: #24241f88; }
+.menu-promo-close { float: right; }
+.menu-promo-dialog table { width: 100%; border-collapse: collapse; margin-block: 12px; font-size: .875rem; }
+.menu-promo-dialog th, .menu-promo-dialog td { padding: 8px 4px; border-bottom: 1px solid #e5dbc8; text-align: left; }
+.menu-promo-dialog td { white-space: nowrap; }
+.menu-promo-dialog td:last-child { color: #25471d; }
+.menu-promo-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+.takeout-photo-card > .menu-promo-price { padding: 0 10px 10px; }
+.menu-promo-price del { color: #666951; }
+.menu-promo-price strong { color: #25471d; }
+.menu-promo-badge { display: inline-block; font-size: .75rem; font-weight: 750; padding: 3px 7px; border-radius: 999px; }
+
+.promo-editor { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; padding: 20px; }
+.promo-editor-fields, .promo-editor label { display: grid; gap: 8px; }
+.promo-editor-fields { gap: 14px; }
+.promo-editor fieldset { min-width: 0; padding: 12px; border: 1px solid #e5dbc8; border-radius: 10px; }
+.promo-editor .promo-checkbox { display: flex; align-items: center; gap: 8px; padding-block: 4px; }
+.promo-checkbox input { width: auto; }
+.promo-price-preview { align-self: start; background: #ffebc5; padding: 16px; border-radius: 12px; }
+
+@media (max-width: 760px) {
+    .promo-editor { grid-template-columns: 1fr; }
+    .phone-menu-controls .menu-promo-banner { order: -1; margin: 0; }
+    body .customer-app.customer-app .phone-menu-controls .search { order: -2; }
+}

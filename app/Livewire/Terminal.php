@@ -13,6 +13,7 @@ use App\Services\Access;
 use App\Services\OrderAdjustments;
 use App\Services\OrderToppings;
 use App\Services\PlaceOrder;
+use App\Models\MenuPromotion;
 use App\Services\RecordPayment;
 use App\Services\RegisterShifts;
 use Illuminate\Support\Str;
@@ -26,6 +27,9 @@ class Terminal extends Component
     use ChecksBusinessAvailability;
     use ManagesRegisterShift;
     use SelectsToppings;
+
+    #[Locked]
+    public ?int $quotedPromo = null;
 
     #[Locked]
     public int $businessId;
@@ -194,8 +198,12 @@ class Terminal extends Component
         $toppingIds ??= $this->complimentaryToppingIds;
         $toppingComp = fn (array $ids) => collect($toppingLines)->whereIn('id', $ids)->sum('total');
         $subtotal = $products->sum($lineTotal) + array_sum(array_column($toppingLines, 'total'));
-        $before = OrderAdjustments::totals($subtotal, $products->whereIn('id', $this->complimentaryIds)->sum($lineTotal) + $toppingComp($this->complimentaryToppingIds), $this->discountType, $this->discountValue, $kiosk->service_charge_bps)['total'];
-        $after = OrderAdjustments::totals($subtotal, $products->whereIn('id', $ids)->sum($lineTotal) + $toppingComp($toppingIds), $type, $value, $kiosk->service_charge_bps);
+        $promotion = MenuPromotion::visibleFor($kiosk->business_id);
+        $promoSaving = $promotion?->savings($products, $this->cart) ?? 0;
+        $beforePromo = ($this->discountValue !== '' || $this->complimentaryIds || $this->complimentaryToppingIds) ? 0 : $promoSaving;
+        $afterPromo = ($value !== '' || $ids || $toppingIds) ? 0 : $promoSaving;
+        $before = OrderAdjustments::totals($subtotal - $beforePromo, $products->whereIn('id', $this->complimentaryIds)->sum($lineTotal) + $toppingComp($this->complimentaryToppingIds), $this->discountType, $this->discountValue, $kiosk->service_charge_bps)['total'];
+        $after = OrderAdjustments::totals($subtotal - $afterPromo, $products->whereIn('id', $ids)->sum($lineTotal) + $toppingComp($toppingIds), $type, $value, $kiosk->service_charge_bps);
         if ($value !== '' && $after['discount'] === 0) {
             throw ValidationException::withMessages(['discountValue' => 'Enter a discount greater than zero.']);
         }
@@ -237,7 +245,7 @@ class Terminal extends Component
             $rows = RecordPayment::withCashReceived($rows);
         }
         $cashReceived = $method === 'cash' && ($requireCashReceived || $this->cashReceived !== '') ? $this->cashReceived : null;
-        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, $table, $method, payments: $rows, cashReceived: $cashReceived, complimentaryIds: $this->complimentaryIds, discountType: $this->discountType, discountValue: $this->discountValue, adjustmentApprovals: $this->adjustmentApprovals, approvedCart: $this->approvedCart, toppings: $this->toppingQuantities, complimentaryToppingIds: $this->complimentaryToppingIds);
+        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, $table, $method, payments: $rows, cashReceived: $cashReceived, complimentaryIds: $this->complimentaryIds, discountType: $this->discountType, discountValue: $this->discountValue, adjustmentApprovals: $this->adjustmentApprovals, approvedCart: $this->approvedCart, toppings: $this->toppingQuantities, complimentaryToppingIds: $this->complimentaryToppingIds, quotedPromo: $this->quotedPromo);
         $this->finishCheckout($order);
     }
 
@@ -260,6 +268,7 @@ class Terminal extends Component
             approvedCart: $this->approvedCart,
             toppings: $this->toppingQuantities,
             complimentaryToppingIds: $this->complimentaryToppingIds,
+            quotedPromo: $this->quotedPromo,
         );
         $this->finishCheckout($order);
     }
@@ -317,17 +326,22 @@ class Terminal extends Component
         $complimentary = $cartProducts->whereIn('id', $this->complimentaryIds)
             ->sum(fn ($product) => $product->price * ($this->cart[$product->id] ?? 0));
         $complimentary += $this->toppingSubtotal($toppings->whereIn('id', $this->complimentaryToppingIds));
+        $promotion = MenuPromotion::visibleFor($business->id);
+        $promoItems = $promotion ? $all->filter($promotion->eligible(...)) : collect();
+        $promoPhase = $promoItems->isNotEmpty() ? $promotion->phase() : null;
+        $promoSaving = $this->quotedPromo = ($this->discountValue !== '' || $this->complimentaryIds || $this->complimentaryToppingIds)
+            ? 0 : ($promotion?->savings($cartProducts, $this->cart) ?? 0);
         $adjustmentsValid = true;
         try {
-            $totals = OrderAdjustments::totals($subtotal, $complimentary, $this->discountType, $this->discountValue, $kiosk->service_charge_bps);
+            $totals = OrderAdjustments::totals($subtotal - $promoSaving, $complimentary, $this->discountType, $this->discountValue, $kiosk->service_charge_bps);
         } catch (ValidationException) {
             $adjustmentsValid = false;
-            $totals = OrderAdjustments::totals($subtotal, $complimentary, 'percent', '', $kiosk->service_charge_bps);
+            $totals = OrderAdjustments::totals($subtotal - $promoSaving, $complimentary, 'percent', '', $kiosk->service_charge_bps);
         }
         ['discount' => $discount, 'fee' => $fee, 'total' => $totalDue] = $totals;
 
         $registerShift = RegisterShifts::active($this->kioskId);
 
-        return view('livewire.terminal', compact('toppings', 'toppingSubtotal', 'business', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'incoming', 'discount', 'complimentary', 'totalDue', 'adjustmentsValid', 'registerShift'))->layout('layouts.app', ['title' => 'Point of sale']);
+        return view('livewire.terminal', compact('promotion', 'promoItems', 'promoPhase', 'promoSaving', 'toppings', 'toppingSubtotal', 'business', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'incoming', 'discount', 'complimentary', 'totalDue', 'adjustmentsValid', 'registerShift'))->layout('layouts.app', ['title' => 'Point of sale']);
     }
 }

@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="{{ asset('branding/takeout-checkout.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/takeout-order-flow.css') . '?v=local-menu-1' }}">
 <link rel="stylesheet" href="{{ asset('branding/ordering-guide.css') . '?v=menu-row-1' }}">
+<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css') }}">
 @endassets
 <main wire:poll.30s x-data="{ menuCategory: null, menuSearch: '' }" class="customer-app takeout-app{{ $reviewOpen || $checkoutOpen || $detailId ? ' takeout-checkout' : ' takeout-catalog' }}">
 @if($detailId !== null && !$reviewOpen)
@@ -15,7 +16,7 @@
         <section class="takeout-product-detail">
             <img src="{{ $detail->image }}" alt="">
             <h2>{{ $detail->menuText('name', $language) }}</h2>
-            <strong class="takeout-price">₱{{ number_format($detail->price / 100, 2) }}</strong>
+            <x-menu-promo-price :product="$detail" :promotion="$promotion" :phase="$promoPhase"/>
             <p>{{ $detail->menuText('description', $language) }}</p>
             <div class="takeout-detail-quantity">
                 <strong>Quantity</strong>
@@ -30,7 +31,7 @@
             <footer class="takeout-submit">
                 <button type="button" class="btn primary wide" wire:click="addDetail" wire:loading.attr="disabled"
                     @disabled(!$orderingOpen || $detailQuantity + ($cart[$detail->id] ?? 0) > min(99, $detail->pivot->stock))>
-                    Add {{ $detailQuantity }} to cart · ₱{{ number_format($detailQuantity * $detail->price / 100, 2) }}
+                    Add {{ $detailQuantity }} to cart · ₱{{ number_format($detailQuantity * ($detail->price - ($promoPhase === 'active' && $promotion->eligible($detail) ? $promotion->unitSaving($detail->price) : 0)) / 100, 2) }}
                 </button>
             </footer>
         </section>
@@ -68,6 +69,7 @@
     @include('livewire.partials.ordering-guide')
 </div>
 <div class="phone-menu-controls">
+    <x-menu-promo-banner :promotion="$promotion" :items="$promoItems" :phase="$promoPhase" :language="$language"/>
     <div role="group" aria-label="Menu categories" class="categories takeout-categories">
         <button type="button" class="chip selected" aria-pressed="true"
             x-bind:class="{ selected: menuCategory === null }" x-bind:aria-pressed="menuCategory === null"
@@ -93,7 +95,7 @@
                 <span class="btn primary" aria-hidden="true">{{ $cart[$product->id] ?? '+' }}</span>
             </button>
             <h3>{{ $product->menuText('name', $language) }}</h3>
-            <strong>₱{{ number_format($product->price / 100, 2) }}</strong>
+            <x-menu-promo-price :product="$product" :promotion="$promotion" :phase="$promoPhase"/>
             @if($product->pivot->stock < 1)<small>Sold out</small>@endif
         </article>
     @endforeach
@@ -181,8 +183,9 @@
                 @include('livewire.partials.topping-subtotal-breakdown')
             @endunless
 
-            <div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div>
-            <div class="total-row grand-total"><strong>Order total</strong><strong>₱{{ number_format(($subtotal+$fee)/100,2) }}</strong></div>
+            @if($promoSaving > 0)<div class="total-row"><span>Menu promo</span><strong>−₱{{ number_format($promoSaving / 100, 2) }}</strong></div>@endif
+<div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div>
+            <div class="total-row grand-total"><strong>Order total</strong><strong>₱{{ number_format(($subtotal-$promoSaving+$fee)/100,2) }}</strong></div>
         </section>
     </div>
 

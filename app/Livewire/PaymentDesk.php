@@ -45,7 +45,7 @@ class PaymentDesk extends Component
 
     private function canAdjustOrder(Order $order): bool
     {
-        return in_array($order->status, ['received', 'preparing', 'ready'], true)
+        return ! $order->promotion_discount && in_array($order->status, ['received', 'preparing', 'ready'], true)
             && ($order->payment_status === 'unpaid' || ($order->payment_status === 'paid' && (int) $order->total === 0))
             && $order->payments->isEmpty();
     }
@@ -70,6 +70,9 @@ class PaymentDesk extends Component
 
     private function orderProposal(Order $order, array $action): array
     {
+        if ($order->promotion_discount) {
+            throw ValidationException::withMessages(['adjustment' => 'This order already has a menu promotion.']);
+        }
         if (! $this->canAdjustOrder($order)) {
             throw ValidationException::withMessages(['adjustment' => 'Adjustments are available before recording payment.']);
         }

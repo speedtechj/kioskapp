@@ -45,6 +45,8 @@ Route::middleware('auth')->group(function () {
         Route::get($path, [SlugLinksController::class, 'legacy'])->whereNumber(['businessId', 'kioskId', 'orderId', 'tableId'])->defaults('destination', $name);
     }
     Route::middleware(CanonicalSlugUrl::class)->scopeBindings()->group(function () {
+        Route::get('/business/{business}/promos', [\App\Http\Controllers\MenuPromotionController::class, 'edit'])->name('promotions.edit');
+        Route::put('/business/{business}/promos', [\App\Http\Controllers\MenuPromotionController::class, 'save'])->name('promotions.save');
         Route::get('/business/{business}/admin', Workspace::class)->name('workspace');
         Route::get('/business/{business}/reports/sales', \App\Http\Controllers\SalesSummaryController::class)->name('reports.sales');
         Route::get('/business/{business}/audit', \App\Http\Controllers\AuditTrailController::class)->name('audit.trail');

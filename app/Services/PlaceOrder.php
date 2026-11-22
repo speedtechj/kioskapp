@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DiningTable;
 use App\Models\Kiosk;
+use App\Models\MenuPromotion;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,7 +29,7 @@ class PlaceOrder
             : $line, $lines);
     }
 
-    public function handle(Kiosk $kiosk, array $cart, string $requestKey, ?DiningTable $table = null, ?string $method = null, ?string $name = null, ?string $notes = null, ?array $payments = null, bool $payAtPickup = false, ?string $cashReceived = null, array $complimentaryIds = [], string $discountType = 'percent', string $discountValue = '', array $adjustmentApprovals = [], string $approvedCart = '', array $toppings = [], array $complimentaryToppingIds = []): Order
+    public function handle(Kiosk $kiosk, array $cart, string $requestKey, ?DiningTable $table = null, ?string $method = null, ?string $name = null, ?string $notes = null, ?array $payments = null, bool $payAtPickup = false, ?string $cashReceived = null, array $complimentaryIds = [], string $discountType = 'percent', string $discountValue = '', array $adjustmentApprovals = [], string $approvedCart = '', array $toppings = [], array $complimentaryToppingIds = [], ?int $quotedPromo = null): Order
     {
         abort_unless($kiosk->active, 404);
         if ($table) {
@@ -55,7 +56,7 @@ class PlaceOrder
             }
         }
 
-        return DB::transaction(function () use ($kiosk, $cart, $requestKey, $table, $method, $name, $notes, $payments, $isPos, $payAtPickup, $cashReceived, $complimentaryIds, $discountType, $discountValue, $adjustmentApprovals, $approvedCart, $toppings, $complimentaryToppingIds) {
+        return DB::transaction(function () use ($kiosk, $cart, $requestKey, $table, $method, $name, $notes, $payments, $isPos, $payAtPickup, $cashReceived, $complimentaryIds, $discountType, $discountValue, $adjustmentApprovals, $approvedCart, $toppings, $complimentaryToppingIds, $quotedPromo) {
             BusinessAvailability::enforce($kiosk->business_id, lock: true);
             $locked = Kiosk::whereKey($kiosk->id)->lockForUpdate()->firstOrFail();
             abort_unless($locked->active, 404);
@@ -110,10 +111,15 @@ class PlaceOrder
                 $complimentary += $isComplimentary ? $total : 0;
                 $items[] = ['product_id' => $product->id, 'name' => $product->name, 'unit_price' => $product->price, 'quantity' => $qty, 'total' => $isComplimentary ? 0 : $total, 'complimentary' => $isComplimentary];
             }
+            $promotionDiscount = ($complimentaryIds || $complimentaryToppingIds || $discountValue !== '')
+                ? 0 : (MenuPromotion::visibleFor($kiosk->business_id)?->savings($products, $cart) ?? 0);
+            if ($quotedPromo !== null && $quotedPromo !== $promotionDiscount) {
+                throw ValidationException::withMessages(['cart' => 'The promotion changed. Review the updated total before placing the order.']);
+            }
             ['discount' => $discount, 'fee' => $fee, 'total' => $totalDue] = OrderAdjustments::totals(
-                $subtotal, $complimentary, $discountType, $discountValue, $locked->service_charge_bps,
+                $subtotal - $promotionDiscount, $complimentary, $discountType, $discountValue, $locked->service_charge_bps,
             );
-            $order = Order::create(['token' => (string) Str::uuid(), 'request_key' => $requestKey, 'business_id' => $kiosk->business_id, 'kiosk_id' => $kiosk->id, 'dining_table_id' => $table?->id, 'user_id' => $isPos ? auth()->id() : null, 'source' => $isPos ? 'pos' : 'qr', 'payment_status' => $isPos && $totalDue === 0 ? 'paid' : 'unpaid', 'payment_method' => null, 'subtotal' => $subtotal, 'complimentary_amount' => $complimentary, 'discount_amount' => $discount, 'service_charge' => $fee, 'total' => $totalDue, 'customer_name' => $name, 'notes' => $notes]);
+            $order = Order::create(['token' => (string) Str::uuid(), 'request_key' => $requestKey, 'business_id' => $kiosk->business_id, 'kiosk_id' => $kiosk->id, 'dining_table_id' => $table?->id, 'user_id' => $isPos ? auth()->id() : null, 'source' => $isPos ? 'pos' : 'qr', 'payment_status' => ($isPos || $promotionDiscount > 0) && $totalDue === 0 ? 'paid' : 'unpaid', 'payment_method' => null, 'subtotal' => $subtotal, 'complimentary_amount' => $complimentary, 'discount_amount' => $discount + $promotionDiscount, 'promotion_discount' => $promotionDiscount, 'service_charge' => $fee, 'total' => $totalDue, 'customer_name' => $name, 'notes' => $notes]);
             if ($adjustmentApprovals) {
                 $order->forceFill(['adjustment_approvals' => $adjustmentApprovals])->save();
             }

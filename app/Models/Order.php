@@ -11,7 +11,7 @@ class Order extends Model
 {
     use HasPrivateOrderSlug;
 
-    protected $fillable = ['token', 'request_key', 'business_id', 'kiosk_id', 'dining_table_id', 'user_id', 'source', 'status', 'payment_status', 'payment_method', 'subtotal', 'complimentary_amount', 'discount_amount', 'service_charge', 'total', 'customer_name', 'notes'];
+    protected $fillable = ['token', 'request_key', 'business_id', 'kiosk_id', 'dining_table_id', 'user_id', 'source', 'status', 'payment_status', 'payment_method', 'subtotal', 'complimentary_amount', 'discount_amount', 'promotion_discount', 'service_charge', 'total', 'customer_name', 'notes'];
 
     protected function casts(): array
     {

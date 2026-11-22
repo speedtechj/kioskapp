@@ -5,6 +5,6 @@
         <div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($order->complimentary_amount / 100, 2) }}</strong></div>
     @endif
     @if($order->discount_amount)
-        <div class="total-row"><span>Discount</span><strong>−₱{{ number_format($order->discount_amount / 100, 2) }}</strong></div>
+        <div class="total-row"><span>{{ $order->promotion_discount ? 'Menu promo' : 'Discount' }}</span><strong>−₱{{ number_format($order->discount_amount / 100, 2) }}</strong></div>
     @endif
 @endif

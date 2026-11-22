@@ -8,6 +8,7 @@ use App\Models\Business;
 use App\Models\Kiosk;
 use App\Models\Order;
 use App\Services\PlaceOrder;
+use App\Models\MenuPromotion;
 use App\Services\RegisterShifts;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
@@ -18,6 +19,9 @@ class TakeoutMenu extends Component
 {
     use ChecksBusinessAvailability;
     use SelectsToppings;
+
+    #[Locked]
+    public ?int $quotedPromo = null;
 
     #[Locked]
     public string $token;
@@ -182,7 +186,7 @@ class TakeoutMenu extends Component
         $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
         $kiosk = $this->kiosk();
-        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, null, null, $this->name, $this->notes, toppings: $this->toppingQuantities);
+        $order = app(PlaceOrder::class)->handle($kiosk, $this->cart, $this->requestKey, null, null, $this->name, $this->notes, toppings: $this->toppingQuantities, quotedPromo: $this->quotedPromo);
         Cookie::queue($this->trackingCookie($kiosk), $order->slug, 1440, '/', null, request()->isSecure(), true, false, 'lax');
         $this->redirectRoute('tracking', ['token' => $order->slug]);
     }
@@ -211,7 +215,11 @@ class TakeoutMenu extends Component
         $toppings = $this->reviewOpen && $this->cart ? $this->toppingOptions($kiosk->business_id) : collect();
         $toppingSubtotal = $this->toppingSubtotal($toppings);
         $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
-        $fee = (int) round($subtotal * $kiosk->service_charge_bps / 10000);
+        $promotion = MenuPromotion::visibleFor($kiosk->business_id);
+        $promoItems = $promotion ? $products->filter($promotion->eligible(...)) : collect();
+        $promoPhase = $promoItems->isNotEmpty() ? $promotion->phase() : null;
+        $promoSaving = $this->quotedPromo = $promotion?->savings($cartProducts, $this->cart) ?? 0;
+        $fee = (int) round(($subtotal - $promoSaving) * $kiosk->service_charge_bps / 10000);
 
         $orderingOpen = RegisterShifts::active($kiosk->id) !== null;
 
@@ -219,6 +227,6 @@ class TakeoutMenu extends Component
 
         $detail = $products->firstWhere('id', $this->detailId);
 
-        return view('livewire.takeout-menu', compact('detail', 'toppings', 'toppingSubtotal', 'activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
+        return view('livewire.takeout-menu', compact('promotion', 'promoItems', 'promoPhase', 'promoSaving', 'detail', 'toppings', 'toppingSubtotal', 'activeOrder', 'orderingOpen', 'kiosk', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Takeout at '.$kiosk->business->name, 'manifestUrl' => route('takeout.manifest', [$kiosk->business, $kiosk])]);
     }
 }

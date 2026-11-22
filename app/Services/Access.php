@@ -21,6 +21,9 @@ class Access
                 return false;
             }
         }
+        if ($permission === 'promotions.manage') {
+            return in_array(self::membership($user, $businessId)?->pivot->role, ['admin', 'manager'], true);
+        }
         if ($user->is_super_admin) {
             return true;
         }

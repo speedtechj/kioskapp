@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{{ asset('branding/register-shift.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/pos-adjustments.css') }}">
 <link rel="stylesheet" href="{{ asset('branding/pos-checkout-layout.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/menu-promotions.css') }}">
 @endassets
 <div class="app-shell" x-data="{navOpen:false,cartOpen:false,payStep:false}"><x-sidebar :business="$business" :kiosk="$kiosk" mode="pos"/><main class="main terminal-main cashier-roomy-pos"><header class="topbar"><div class="heading-row"><button class="mobile-only icon-btn" @click="navOpen=true" aria-label="Open navigation"><x-g-icon name="bars-3"/></button><div><span class="eyebrow">SELL SOMETHING GOOD</span><h1>Point of sale<span class="brand-dot">.</span></h1></div></div><div class="topbar-actions"><button class="btn small" wire:poll.10s wire:click="$set('incomingOpen',true)">Incoming orders · {{ $incoming->count() }}</button><span class="branch-chip desktop-branch"><span class="tiny-dot"></span>{{ $kiosk->name }}</span>
 <label class="staff-branch">Kiosk<select @change="window.location.assign($event.target.value)">
@@ -13,6 +14,7 @@
 </select></label><span class="date-label">{{ now()->format('D, M j') }}</span></div></header>@if(\App\Services\Access::allows(auth()->user(), $business->id, 'orders.pay'))
 <x-register-shift-controls :shift="$registerShift" :drawer-totals="$drawerTotals" :cash-counts="$cashCounts"/>
 @endif
+<x-menu-promo-banner :promotion="$promotion" :items="$promoItems" :phase="$promoPhase" :staff="true"/>
 <div class="pos-pin-links">
 <button type="button" class="btn" data-cashier-install>Install Cashier POS</button>
     @if(\App\Services\StaffPins::canManage(auth()->user(), $business, $kiosk))
@@ -51,7 +53,7 @@
         <option value="{{ $table->id }}">Dine-in · {{ $table->name }}</option>
     @endforeach
 </select></label>
-<div class="search"><x-g-icon name="magnifying-glass"/><input wire:model.live.debounce.200ms="search" placeholder="Search your menu…" aria-label="Search menu"><kbd>⌕</kbd></div><div class="categories"><button wire:click="$set('category','All')" class="chip {{ $category==='All'?'selected':'' }}">All items</button>@foreach($categories as $c)<button wire:click="$set('category',{{ Js::from($c) }})" class="chip {{ $category===$c?'selected':'' }}">{{ $c }}</button>@endforeach</div><div class="section-line"><h2>Made to order</h2><span>{{ $products->count() }} items available</span></div><div class="product-grid">@forelse($products as $p)<button wire:key="product-{{ $p->id }}" wire:click="add({{ $p->id }})" class="product-card" @disabled($p->pivot->stock<1)><div class="product-photo"><img src="{{ $p->image }}" alt="{{ $p->name }}"><span class="stock-tag">{{ $p->pivot->stock>0?'Freshly made':'Sold out' }}</span></div><div class="product-info"><span class="product-category">{{ $p->category }}</span><h3>{{ $p->name }}</h3><div class="product-bottom"><strong>₱{{ number_format($p->price/100,2) }}</strong><span class="add-circle"><span class="cashier-desktop-add">+</span><span class="cashier-mobile-add">{{ $p->pivot->stock > 0 ? 'Add' : 'Sold out' }}</span></span></div></div></button>@empty<div class="empty">No matching items.</div>@endforelse</div></section><aside class="cart-panel" id="staff-cart" aria-label="Current order">
+<div class="search"><x-g-icon name="magnifying-glass"/><input wire:model.live.debounce.200ms="search" placeholder="Search your menu…" aria-label="Search menu"><kbd>⌕</kbd></div><div class="categories"><button wire:click="$set('category','All')" class="chip {{ $category==='All'?'selected':'' }}">All items</button>@foreach($categories as $c)<button wire:click="$set('category',{{ Js::from($c) }})" class="chip {{ $category===$c?'selected':'' }}">{{ $c }}</button>@endforeach</div><div class="section-line"><h2>Made to order</h2><span>{{ $products->count() }} items available</span></div><div class="product-grid">@forelse($products as $p)<button wire:key="product-{{ $p->id }}" wire:click="add({{ $p->id }})" class="product-card" @disabled($p->pivot->stock<1)><div class="product-photo"><img src="{{ $p->image }}" alt="{{ $p->name }}"><span class="stock-tag">{{ $p->pivot->stock>0?'Freshly made':'Sold out' }}</span></div><div class="product-info"><span class="product-category">{{ $p->category }}</span><h3>{{ $p->name }}</h3><div class="product-bottom"><x-menu-promo-price :product="$p" :promotion="$promotion" :phase="$promoPhase"/><span class="add-circle"><span class="cashier-desktop-add">+</span><span class="cashier-mobile-add">{{ $p->pivot->stock > 0 ? 'Add' : 'Sold out' }}</span></span></div></div></button>@empty<div class="empty">No matching items.</div>@endforelse</div></section><aside class="cart-panel" id="staff-cart" aria-label="Current order">
 <div class="staff-cart-tools"><button type="button" class="btn" x-show="payStep" @click="payStep=false; $nextTick(() => $refs.continuePayment.focus())">Back to cart</button><button type="button" class="icon-btn" x-ref="cartClose" @click="cartOpen=false" aria-label="Close cart"><x-g-icon name="x-mark"/></button></div>
 <div class="cart-head"><span class="eyebrow">A GOOD CHOICE</span><h2 x-text="payStep ? 'Order summary' : 'Current order'">Current order</h2><div class="cart-mode"><span><x-g-icon name="user"/>{{ $tableId?'Dine-in':'Takeout' }}</span><select wire:model.live="tableId" aria-label="Select table"><option value="">Takeout</option>@foreach($kiosk->tables()->where('active',true)->get() as $t)<option value="{{ $t->id }}">{{ $t->name }}</option>@endforeach</select></div></div><div class="cart-items">@forelse($cartProducts as $p)<div class="cart-item" wire:key="cart-{{ $p->id }}"><img src="{{ $p->image }}" alt=""><div><h3>{{ $p->name }}</h3>
 @if(in_array($p->id, $complimentaryIds, true))
@@ -81,10 +83,12 @@
 @include('livewire.partials.topping-subtotal-breakdown', ['freeToppingIds' => $complimentaryToppingIds])
 @if($complimentary > 0)<div class="total-row"><span>Complimentary items</span><strong>−₱{{ number_format($complimentary / 100, 2) }}</strong></div>@endif
 @if($discount > 0)<div class="total-row"><span>Discount</span><strong>−₱{{ number_format($discount / 100, 2) }}</strong></div>@endif
+@if($promoSaving > 0)<div class="total-row"><span>Menu promo</span><strong>−₱{{ number_format($promoSaving / 100, 2) }}</strong></div>@endif
 <div class="total-row"><span>Service charge ({{ $kiosk->service_charge_bps/100 }}%)</span><span>₱{{ number_format($fee/100,2) }}</span></div><div class="total-row grand-total"><strong>Order total</strong><strong>₱{{ number_format($totalDue/100,2) }}</strong></div></div>@if($cart && \App\Services\Access::allows(auth()->user(), $business->id, 'orders.pay'))
 <details class="pos-adjustments" wire:key="pos-adjustments" wire:ignore.self>
     <summary>Order adjustments</summary>
     <p>Choose one adjustment type per order.</p>
+    @if($promoSaving > 0)<p>A manager-approved adjustment replaces the menu promo on this order.</p>@endif
     @if($discountValue !== '')
         <p><strong>Discount applied</strong> · Manager approved</p>
         <button type="button" class="btn" wire:click="requestCartDiscount(true)">Remove discount</button>

@@ -49,6 +49,9 @@
 @else<a href="{{ route('workspace',['business'=>$business,'tab'=>$key]) }}" class="nav-item {{ $key === 'orders' ? 'staff-order-link' : '' }}"><x-g-icon :name="$icon"/>{{ $label }}</a>@endif
 @endif
 @endforeach
+@if(\App\Services\Access::allows(auth()->user(), $business->id, 'promotions.manage'))
+    <a href="{{ route('promotions.edit', $business) }}" class="nav-item {{ $mode === 'promotions' ? 'active' : '' }}" @if($mode === 'promotions') aria-current="page" @endif>Promos</a>
+@endif
 @if(\App\Services\BusinessAudit::canView(auth()->user(), $business->id))
     <a href="{{ route('audit.trail', $business) }}" class="nav-item {{ $mode === 'audit' ? 'active' : '' }}" @if($mode === 'audit') aria-current="page" @endif>
         <x-g-icon name="clipboard-document-list"/>Audit Trail

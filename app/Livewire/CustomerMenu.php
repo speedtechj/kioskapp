@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\DiningTable;
 use App\Models\Kiosk;
 use App\Services\PlaceOrder;
+use App\Models\MenuPromotion;
 use App\Services\RegisterShifts;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
@@ -15,6 +16,9 @@ class CustomerMenu extends Component
 {
     use \App\Livewire\Concerns\SelectsToppings;
     use \App\Livewire\Concerns\ChecksBusinessAvailability;
+
+    #[Locked]
+    public ?int $quotedPromo = null;
 
     #[Locked]
     public string $token;
@@ -84,7 +88,7 @@ class CustomerMenu extends Component
         $this->resetValidation('ordering');
         $this->validate(['name' => 'nullable|string|max:80', 'notes' => 'nullable|string|max:500']);
         $table = $this->table();
-        $order = app(PlaceOrder::class)->handle($table->kiosk, $this->cart, $this->requestKey, $table, null, $this->name, $this->notes, toppings: $this->toppingQuantities);
+        $order = app(PlaceOrder::class)->handle($table->kiosk, $this->cart, $this->requestKey, $table, null, $this->name, $this->notes, toppings: $this->toppingQuantities, quotedPromo: $this->quotedPromo);
         $this->redirectRoute('tracking', ['token' => $order->slug]);
     }
 
@@ -102,10 +106,14 @@ class CustomerMenu extends Component
         $toppings = $this->cart ? $this->toppingOptions($table->kiosk->business_id) : collect();
         $toppingSubtotal = $this->toppingSubtotal($toppings);
         $subtotal = $cartProducts->sum(fn ($p) => $p->price * ($this->cart[$p->id] ?? 0)) + $toppingSubtotal;
-        $fee = (int) round($subtotal * $table->kiosk->service_charge_bps / 10000);
+        $promotion = MenuPromotion::visibleFor($table->kiosk->business_id);
+        $promoItems = $promotion ? $all->filter($promotion->eligible(...)) : collect();
+        $promoPhase = $promoItems->isNotEmpty() ? $promotion->phase() : null;
+        $promoSaving = $this->quotedPromo = $promotion?->savings($cartProducts, $this->cart) ?? 0;
+        $fee = (int) round(($subtotal - $promoSaving) * $table->kiosk->service_charge_bps / 10000);
 
         $orderingOpen = RegisterShifts::active($table->kiosk_id) !== null;
 
-        return view('livewire.customer-menu', compact('toppings', 'toppingSubtotal', 'orderingOpen', 'table', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Order at '.$table->kiosk->business->name, 'manifestUrl' => route('menu.manifest', [$table->kiosk->business, $table->kiosk, $table])]);
+        return view('livewire.customer-menu', compact('promotion', 'promoItems', 'promoPhase', 'promoSaving', 'toppings', 'toppingSubtotal', 'orderingOpen', 'table', 'products', 'categories', 'cartProducts', 'subtotal', 'fee', 'languages', 'language'))->layout('layouts.app', ['title' => 'Order at '.$table->kiosk->business->name, 'manifestUrl' => route('menu.manifest', [$table->kiosk->business, $table->kiosk, $table])]);
     }
 }
