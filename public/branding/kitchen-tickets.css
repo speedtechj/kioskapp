@@ -25,3 +25,76 @@
     .kitchen-table-groups, .kitchen-takeout-grid { grid-template-columns: 1fr; }
     .kitchen-view-switch .btn { flex: 1 1 auto; justify-content: center; }
 }
+
+@media (max-width: 760px) {
+    .kitchen-shell {
+        --kitchen-paper: #fffaf3;
+        --kitchen-ink: #252a1b;
+        --kitchen-line: #d9cdb8;
+        --kitchen-orange: #a73e0b;
+        --kitchen-olive: #384c15;
+    }
+    .kitchen-shell .kitchen-display {
+        background: var(--kitchen-paper);
+        color: var(--kitchen-ink);
+        padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+        padding-bottom: calc(var(--staff-nav-height, 62px) + 18px);
+    }
+    .kitchen-display .topbar { display: grid; justify-items: start; gap: 8px; }
+    .kitchen-display .topbar h1 { font-size: clamp(2rem, 9vw, 2.75rem); line-height: 1.1; }
+    .kitchen-display .kitchen-desktop-label { display: none; }
+    .kitchen-display .branch-chip {
+        min-height: 36px;
+        border-color: var(--kitchen-line);
+        background: transparent;
+    }
+    .kitchen-display .kitchen-view-switch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .kitchen-display .kitchen-view-switch .btn {
+        min-width: 0;
+        gap: 5px;
+        padding-inline: 6px;
+        white-space: normal;
+        font-size: .875rem;
+    }
+    .kitchen-display .kitchen-view-switch .btn.primary {
+        background: var(--kitchen-orange);
+        color: white;
+    }
+    .kitchen-display .kitchen-view-switch .icon { flex: 0 0 16px; }
+    .kitchen-display .kitchen-order-ticket {
+        padding: 14px;
+        gap: 14px;
+        border-radius: 16px;
+        background: #fffdf7;
+    }
+    .kitchen-display .kitchen-order-ticket h3 {
+        font-size: 1.85rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .kitchen-display .kitchen-status.status-received {
+        background: #ffcc65;
+        color: #422a0d;
+    }
+    .kitchen-display .kitchen-status.status-ready {
+        background: #c5dda4;
+        color: #253b16;
+    }
+    .kitchen-display .kitchen-ticket-action.btn {
+        min-height: 52px;
+        border-radius: 12px;
+    }
+    .kitchen-display .kitchen-order-ticket:has(.status-preparing) .kitchen-ticket-action.btn,
+    .kitchen-display .kitchen-ticket-action.kitchen-handoff.btn {
+        background: var(--kitchen-olive);
+        color: white;
+    }
+    .kitchen-display .kitchen-ticket-action:focus-visible,
+    .kitchen-display .kitchen-view-switch button:focus-visible {
+        outline: 2px solid var(--kitchen-olive);
+        outline-offset: 3px;
+    }
+}

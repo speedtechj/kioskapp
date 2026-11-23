@@ -1,13 +1,13 @@
 @assets
-<link rel="stylesheet" href="{{ asset('branding/kitchen-tickets.css') }}">
+<link rel="stylesheet" href="{{ asset('branding/kitchen-tickets.css').'?v=2' }}">
 @endassets
-<div class="app-shell" x-data="{navOpen:false}">
+<div class="app-shell kitchen-shell" x-data="{navOpen:false}">
     <x-sidebar :business="$business" :kiosk="$kiosk" mode="kitchen"/>
     <main class="main kitchen-display" wire:poll.5s>
         <header class="topbar">
             <div class="heading-row">
                 <button class="icon-btn mobile-only" @click="navOpen=true" aria-label="Open navigation"><x-g-icon name="bars-3"/></button>
-                <div><h1>Kitchen Display<span class="brand-dot">.</span></h1><p>Active tickets</p></div>
+                <div><h1>Kitchen<span class="kitchen-desktop-label"> Display</span><span class="brand-dot">.</span></h1><p class="kitchen-desktop-label">Active tickets</p></div>
             </div>
             <span class="branch-chip"><span class="tiny-dot"></span>{{ $kiosk->name }} · Live</span>
         </header>
