@@ -61,6 +61,21 @@ trait AnswersCustomerQuestions
                 'image' => $product->image,
             ]);
 
+        if (mb_strtolower($question) === 'under ₱100') {
+            $matches = $items->filter(fn (array $item) => $item['price'] < 10_000)->sortBy('price')->take(3);
+            if ($matches->isEmpty()) {
+                return ['answer' => 'No available menu items are under ₱100.00.', 'item' => null];
+            }
+
+            $item = $matches->first();
+            $options = $matches->map(fn (array $match) => $match['name'].' — ₱'.number_format($match['price'] / 100, 2));
+
+            return [
+                'answer' => "Available under ₱100.00:\n".$options->implode("\n"),
+                'item' => [...$item, 'id' => $matches->keys()->first(), 'topping' => null, 'total' => $item['price']],
+            ];
+        }
+
         $toppings = OrderToppings::catalog($businessId)->where('active', true)->orderBy('id')->limit(100)->get()
             ->keyBy('id')->map(fn ($topping) => ['name' => $topping->name, 'price' => $topping->price]);
 
