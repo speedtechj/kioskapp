@@ -8,6 +8,7 @@
         x-ref="staffMenuTrigger" :aria-expanded="navOpen.toString()" aria-controls="staff-nav">
         <x-g-icon name="bars-3"/>Menu
     </button>
+    {{ $mobileActions ?? '' }}
 </nav>
 <div class="staff-menu-backdrop" :class="{ 'is-open': navOpen }"
     @click="navOpen = false; $refs.staffMenuTrigger.focus()" aria-hidden="true"></div>
@@ -21,7 +22,7 @@
     @foreach(['pos' => ['calculator', 'Point of Sale', 'pos.use'], 'orders' => ['clipboard-document-list', 'Orders', 'orders.view'], 'kitchen' => ['fire', 'Kitchen', 'kitchen.use']] as $tab => [$icon, $label, $permission])
         @if(\App\Services\Access::allows(auth()->user(), $business->id, $permission) && ($tab === 'orders' || $staffKiosk))
             <a href="{{ $tab === 'orders' ? route('workspace', ['business' => $business, 'tab' => 'orders']) : route($tab, [$business, $staffKiosk]) }}"
-                @if($mode === $tab) aria-current="page" @endif>
+                @if($mode === $tab) aria-current="page" @click.prevent="navOpen=false; $refs.staffMenuTrigger.focus()" @endif>
                 <x-g-icon :name="$icon"/><span>{{ $label }}</span>
                 @if($mode === $tab)<span class="staff-current" aria-hidden="true">Current</span>@endif
                 <x-g-icon name="arrow-up-right"/>
